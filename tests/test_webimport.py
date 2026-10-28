@@ -51,6 +51,35 @@ class TestImportUrl(unittest.TestCase):
         for noise in ("alert(", "Aceptamos cookies", "© Mi Blog", "Inicio"):
             self.assertNotIn(noise, body)
 
+    def test_github_prefix_and_boilerplate(self):
+        html = ("<html><head><title>GitHub - tmux-plugins/tpm: Tmux Plugin Manager</title>"
+                "<meta property='og:site_name' content='GitHub'>"
+                "<meta property='og:description' content='Tmux Plugin Manager. Contribute to tmux-plugins/tpm "
+                "development by creating an account on GitHub.'></head><body><article><h1>Tmux Plugin Manager</h1>"
+                f"{'<p>Installs and loads tmux plugins from GitHub.</p>' * 8}</article></body></html>")
+        with fake_fetch(html, "https://github.com/tmux-plugins/tpm"):
+            meta, body = webimport.import_url("https://github.com/tmux-plugins/tpm")
+        self.assertEqual(meta["title"], "tmux-plugins/tpm: Tmux Plugin Manager")
+        self.assertEqual(meta["descripcion"], "Tmux Plugin Manager.")
+        self.assertTrue(body.startswith("# Tmux Plugin Manager"))
+
+    def test_github_wiki_title(self):
+        html = ("<html><head><meta property='og:title' content='Getting Started'></head><body><article>"
+                f"{'<p>tmux is a terminal multiplexer with sessions.</p>' * 8}</article></body></html>")
+        with fake_fetch(html, "https://github.com/tmux/tmux/wiki/Getting-Started"):
+            meta, _ = webimport.import_url("https://github.com/tmux/tmux/wiki/Getting-Started")
+        self.assertEqual(meta["title"], "tmux/tmux wiki: Getting Started")
+
+    def test_title_is_only_site_name(self):
+        html = ("<html><head><title>Google Style Guides</title>"
+                "<meta property='og:site_name' content='Google Style Guides'></head><body><article>"
+                "<h1><a href='/styleguide/'>Google Style Guides</a></h1><h1>Shell Style Guide</h1>"
+                f"{'<p>Bash is the only shell scripting language permitted.</p>' * 6}</article></body></html>")
+        with fake_fetch(html, "https://google.github.io/styleguide/shellguide.html"):
+            meta, body = webimport.import_url("https://google.github.io/styleguide/shellguide.html")
+        self.assertEqual(meta["title"], "Shell Style Guide")
+        self.assertTrue(body.startswith("Bash is the only"), body[:60])  # sin los h1 repetidos
+
     def test_adds_https(self):
         with fake_fetch(ARTICLE) as f:
             webimport.import_url("  blog.ej.es/gatos ")

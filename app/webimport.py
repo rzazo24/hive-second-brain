@@ -380,20 +380,37 @@ def import_url(url):
         mt = re.match(r"(.{2,}?)\s+[-|—·:]\s+(.+)$", title)
         if mt and (site and site in mt.group(2).lower() or any(w in mt.group(2).lower() for w in host_words)):
             title = mt.group(1)
+        # ...o el prefijo ("GitHub - usuario/repo: descripción")
+        elif mt and mt.group(1).strip().lower() in {site, *host_words}:
+            title = mt.group(2)
+        # Páginas de wiki de GitHub: el título solo ("Getting Started") es demasiado genérico
+        gh = re.match(r"https://github\.com/([^/]+/[^/]+)/wiki/", final_url)
+        if gh and gh.group(1).lower() not in title.lower():
+            title = f"{gh.group(1)} wiki: {title}"
+        # GitHub añade a la descripción una coletilla que no aporta nada
+        desc = re.sub(r"\s*Contribute to \S+ development by creating an account on GitHub\.?\s*$", "",
+                      " ".join((m.get("og:description") or m.get("description") or "").split()))
         meta = {
             "title": " ".join(title.split()),
             "url": m.get("og:url") if (m.get("og:url") or "").startswith("http") else final_url,
             "autor": m.get("author") or m.get("article:author") or m.get("parsely-author") or "",
             "fecha_publicacion": (m.get("article:published_time") or m.get("date") or m.get("dc.date") or "")[:10],
             "sitio": m.get("og:site_name") or urllib.parse.urlsplit(final_url).hostname or "",
-            "descripcion": " ".join((m.get("og:description") or m.get("description") or "").split()),
+            "descripcion": desc,
         }
         md = _Md(final_url)
         md.block(_main_node(tb.root))
         body = _join(md.out)
-        # Quita un primer título que repita el de la página
-        first = body.split("\n", 1)[0]
-        if first.startswith("# ") and first[2:].strip().lower() == meta["title"].lower():
+        heading = lambda line: re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", line[2:]).strip()  # sin enlaces
+        # Si el título es solo el nombre del sitio ("Google Style Guides"), usa el primer h1 propio
+        if meta["title"].lower() in {site, (meta["sitio"] or "").lower()}:
+            h1 = next((heading(l) for l in body.split("\n") if l.startswith("# ")
+                       and heading(l).lower() not in {site, meta["title"].lower()}), "")
+            if h1:
+                meta["title"] = h1
+        # Quita los primeros títulos que repitan el de la página o el nombre del sitio
+        while body.startswith("# ") and heading(body.split("\n", 1)[0]).lower() in {
+                meta["title"].lower(), site, (meta["sitio"] or "").lower()}:
             body = body.split("\n", 1)[1].strip() if "\n" in body else ""
     if len(re.sub(r"\s+", "", body)) < 200:
         raise ImportError_("No se pudo extraer el texto del artículo (puede que la web lo cargue con JavaScript o pida "
