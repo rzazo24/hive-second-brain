@@ -183,6 +183,16 @@
              max-height:260px; overflow:auto; margin:0 0 12px; }
   .tpl .btn { margin-bottom:14px; }
   .drop.busy { opacity:.6; pointer-events:none; }
+  .urlbox { display:flex; align-items:center; gap:14px; padding:14px 16px; border:1px solid var(--line); border-radius:14px;
+            background:var(--surface); margin-bottom:10px; }
+  .urlbox:focus-within { border-color:var(--amber); }
+  .urlfield { flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
+  .urlrow { display:flex; gap:8px; }
+  .urlrow input { flex:1; min-width:0; border:1px solid var(--line); background:var(--bg); border-radius:10px; padding:9px 12px; outline:none; font-size:16px; }
+  .urlrow input:focus { border-color:var(--amber); }
+  .urlrow .btn { width:auto; padding:9px 16px; font-size:15px; flex-shrink:0; }
+  .urlrow .btn:disabled { opacity:.6; }
+  @media (max-width:760px) { .urlbox .drop-ico { display:none; } .urlbox { padding:14px; } }
   .up { font-size:14px; padding:9px 12px; border-radius:10px; margin:6px 0 0; background:var(--hover); }
   .up.ok { background:rgba(46,160,67,.14); } .up.err { background:rgba(235,87,87,.15); } .up.note { background:none; color:var(--muted); padding:4px 2px; font-size:13px; }
   .or { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; margin:18px 0; }
@@ -501,6 +511,7 @@ function showHelp() {
     <h2>Añadir una fuente</h2>
     <ul>
       <li>Escribe un <b>título</b> y pega el <b>contenido</b> (texto o markdown). La URL y el autor son opcionales, pero ayudan a citar la fuente.</li>
+      <li><b>Importar desde URL:</b> pega el enlace de un artículo y la app descarga la página, extrae el texto principal y lo guarda en markdown con <code>origen: web</code>. No funciona con páginas que piden iniciar sesión, muros de pago ni webs que cargan el texto con JavaScript: en esos casos, copia y pega el texto.</li>
       <li>También puedes <b>subir archivos .md</b> (uno o varios) con el recuadro de arriba del formulario${m ? '' : ' o arrastrándolos encima'}. Se guardan tal cual, con su frontmatter si lo tienen.</li>
       <li>Si generas el .md con <b>Claude</b> (claude.ai), copia una plantilla de <i>¿Generas el .md con Claude?</i> en Añadir: <b>Esquema</b> (para pedir un esquema de un tema) o <b>Resumen / fuente</b>. El archivo saldrá con <code>origen: claude</code> y el wiki lo marcará como <b>fuente secundaria generada por IA</b>: si contradice a una fuente original, prevalece la original.</li>
       <li>Con Claude Code en la VM también puedes pedir <code>guarda esto como fuente</code>: crea el archivo directamente en <code>raw/</code>.</li>
@@ -532,6 +543,16 @@ function showHelp() {
 function showForm() {
   crumbs(['Añadir fuente']); document.title = 'Añadir fuente · Hive2nd Brain';
   $('#view').innerHTML = `<div class="page-icon">${icon('inbox')}</div>
+  <form class="urlbox" id="urlform">
+    <span class="drop-ico">${icon('link')}</span>
+    <div class="urlfield">
+      <b>Importar desde URL</b>
+      <div class="urlrow">
+        <input type="url" id="urlin" name="url" placeholder="https://…" inputmode="url" autocomplete="off" enterkeyhint="go" required>
+        <button class="btn" id="urlbtn">Importar</button>
+      </div>
+    </div>
+  </form>
   <label class="drop" id="drop">
     <input type="file" id="mdfile" accept=".md,.markdown,.txt,text/markdown,text/plain" multiple hidden>
     <span class="drop-ico">${icon('upload')}</span>
@@ -572,6 +593,7 @@ function showForm() {
     else toast('Error: ' + d.error);
   };
   pickTemplate(store.get('tpl') || 'esquema');
+  $('#urlform').onsubmit = e => { e.preventDefault(); importUrl($('#urlin').value.trim()); };
   $('#mdfile').onchange = e => { uploadMd([...e.target.files]); e.target.value = ''; };
   const drop = $('#drop');
   ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
@@ -593,6 +615,30 @@ async function copyTemplate() {
     const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); document.execCommand('copy'); sel.removeAllRanges();
   }
   toast('Plantilla copiada');
+}
+
+// Importa una página web: el servidor la descarga y la convierte a markdown
+async function importUrl(url) {
+  if (!url) return;
+  const status = $('#upstatus'), btn = $('#urlbtn');
+  btn.disabled = true; btn.textContent = 'Importando…';
+  status.innerHTML = `<div class="up">Descargando y convirtiendo la página…</div>`;
+  let line;
+  try {
+    const r = await fetch('/api/fuente-url', { method:'POST', body: JSON.stringify({ url }) });
+    const d = await r.json();
+    if (!r.ok) line = ['err', d.error];
+    else if (d.duplicado) line = ['dup', `Esa URL ya estaba importada como raw/${d.archivo}`];
+    else { line = ['ok', `Importada como raw/${d.archivo}`]; $('#urlin').value = ''; }
+  } catch {
+    queue.add({ url, _endpoint:'/api/fuente-url' }); $('#urlin').value = '';
+    line = ['dup', 'Sin conexión: se importará al reconectar'];
+  }
+  btn.disabled = false; btn.textContent = 'Importar';
+  status.innerHTML = `<div class="up ${line[0]}">${line[0] === 'ok' ? '✓' : line[0] === 'err' ? '✕' : 'i'} ${esc(line[1])}</div>`
+    + (line[0] === 'ok' ? '<div class="up note">Queda en Pendientes de ingerir hasta la próxima ingesta.</div>' : '');
+  toast(line[0] === 'ok' ? 'Página importada' : line[1]);
+  if (line[0] === 'ok') loadTree();
 }
 
 // Sube archivos .md tal cual a raw/ (sin conexión, se encolan en el dispositivo)

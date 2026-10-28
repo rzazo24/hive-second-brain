@@ -15,6 +15,8 @@ from datetime import date
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+import webimport
+
 ROOT = Path(__file__).resolve().parent.parent
 WIKI = ROOT / "data" / "wiki"
 RAW = ROOT / "data" / "raw"
@@ -136,6 +138,37 @@ def save_md_file(data):
     return path.name, False
 
 
+def save_url(data):
+    """Descarga una página web, la convierte a markdown y la guarda en raw/ con origen: web."""
+    url = (data.get("url") or "").strip()
+    if not url:
+        raise ValueError("Falta la URL")
+    # Si ya se importó esa URL, no se duplica
+    for existing in RAW.glob("*.md"):
+        head = existing.read_text(encoding="utf-8", errors="replace")[:2000]
+        if re.search(r'^url: "?' + re.escape(url.rstrip("/")) + r'/?"?\s*$', head, re.M):
+            return existing.name, True
+    try:
+        meta, body = webimport.import_url(url)
+    except webimport.ImportError_ as e:
+        raise ValueError(str(e))
+    today = date.today().isoformat()
+    base = f"{today}-{slugify(meta['title'])}"
+    path = RAW / f"{base}.md"
+    n = 2
+    while path.exists():
+        path = RAW / f"{base}-{n}.md"
+        n += 1
+    clean = lambda s: s.replace("\n", " ").replace('"', "'")
+    lines = ["---", f'title: "{clean(meta["title"])}"', f'url: "{clean(meta["url"])}"']
+    for key in ("autor", "fecha_publicacion", "sitio", "descripcion"):
+        if meta.get(key):
+            lines.append(f'{key}: "{clean(meta[key])}"')
+    lines += ["origen: web", f"capturado: {today}", "---", "", body, ""]
+    path.write_text("\n".join(lines), encoding="utf-8")
+    return path.name, False
+
+
 class Handler(BaseHTTPRequestHandler):
     def send(self, status, payload, ctype="application/json; charset=utf-8", headers=None):
         body = payload if isinstance(payload, bytes) else json.dumps(payload, ensure_ascii=False).encode()
@@ -179,7 +212,7 @@ class Handler(BaseHTTPRequestHandler):
         self.do_GET()
 
     def do_POST(self):
-        handlers = {"/api/fuente": save_source, "/api/fuente-md": save_md_file}
+        handlers = {"/api/fuente": save_source, "/api/fuente-md": save_md_file, "/api/fuente-url": save_url}
         if self.path not in handlers:
             return self.send(404, {"error": "No encontrado"})
         try:
