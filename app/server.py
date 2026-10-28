@@ -108,7 +108,7 @@ def save_source(data):
         lines.append(f'url: "{clean(url)}"')
     if data.get("autor"):
         lines.append(f'autor: "{clean(data["autor"])}"')
-    lines += [f"capturado: {today}", "---", "", body, ""]
+    lines += ["origen: usuario", f"capturado: {today}", "---", "", body, ""]
     path.write_text("\n".join(lines), encoding="utf-8")
     return path.name
 

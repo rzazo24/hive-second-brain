@@ -168,6 +168,17 @@
   .drop-ico { width:44px; height:50px; flex-shrink:0; display:grid; place-items:center; background:var(--amber); color:var(--charcoal);
               clip-path:polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
   .drop-ico svg { width:22px; height:22px; }
+  .tpl { border:1px solid var(--line); border-radius:14px; background:var(--surface); padding:0 16px; margin:10px 0 0; }
+  .tpl summary { cursor:pointer; padding:13px 0; font-weight:600; font-size:14.5px; display:flex; gap:8px; align-items:center; list-style:none; }
+  .tpl summary::-webkit-details-marker { display:none; }
+  .tpl summary svg { width:18px; height:18px; color:var(--ink); flex-shrink:0; }
+  .tpl summary::after { content:"▾"; margin-left:auto; color:var(--muted); transition:transform .15s; }
+  .tpl[open] summary::after { transform:rotate(180deg); }
+  .tpl .sub { font-size:13.5px; color:var(--muted); margin:0 0 10px; }
+  .tpl code { background:var(--code); color:var(--ink); border-radius:4px; padding:0 4px; }
+  .tpl pre { background:var(--charcoal); color:#f3ecdc; border-radius:10px; padding:14px; font-size:12.5px; white-space:pre-wrap;
+             max-height:260px; overflow:auto; margin:0 0 12px; }
+  .tpl .btn { margin-bottom:14px; }
   .or { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; margin:18px 0; }
   .or::before, .or::after { content:""; flex:1; height:1px; background:var(--line); }
   .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--charcoal); color:#fff7e3; padding:10px 18px;
@@ -485,6 +496,8 @@ function showHelp() {
     <ul>
       <li>Escribe un <b>título</b> y pega el <b>contenido</b> (texto o markdown). La URL y el autor son opcionales, pero ayudan a citar la fuente.</li>
       <li>También puedes <b>subir archivos .md</b> (uno o varios) con el recuadro de arriba del formulario${m ? '' : ' o arrastrándolos encima'}. Se guardan tal cual, con su frontmatter si lo tienen.</li>
+      <li>Si generas el .md con <b>Claude</b> (claude.ai), copia la plantilla de <i>¿Generas el .md con Claude?</i> en Añadir. El archivo saldrá con <code>origen: claude</code> y el wiki lo marcará como <b>fuente secundaria generada por IA</b>: si contradice a una fuente original, prevalece la original.</li>
+      <li>Con Claude Code en la VM también puedes pedir <code>guarda esto como fuente</code>: crea el archivo directamente en <code>raw/</code>.</li>
       <li>La fuente aparece en <b>Pendientes de ingerir</b> hasta que el agente la procese.</li>
       <li>Sin conexión, la fuente se guarda en el dispositivo y se envía sola al recuperar la conexión.</li>
     </ul>
@@ -518,6 +531,12 @@ function showForm() {
     <span class="drop-ico">${icon('upload')}</span>
     <span><b>Subir archivo .md</b><br><span class="sub">${isMobile() ? 'Toca para elegir uno o varios archivos' : 'Arrastra aquí uno o varios archivos, o haz clic para elegirlos'}</span></span>
   </label>
+  <details class="tpl">
+    <summary>${icon('hexes')} ¿Generas el .md con Claude? Usa esta plantilla</summary>
+    <p class="sub">Copia este texto en claude.ai, añade al final el tema o pega el contenido, y sube aquí el .md que te devuelva. Lleva <code>origen: claude</code>, así la ingesta lo trata como fuente secundaria.</p>
+    <pre id="tpltext"></pre>
+    <button type="button" class="btn" onclick="copyTemplate()">Copiar plantilla</button>
+  </details>
   <div class="or"><span>o escribe la fuente</span></div>
   <form id="f">
     <input class="big" name="titulo" placeholder="Sin título" required>
@@ -541,11 +560,23 @@ function showForm() {
     if (r.ok) { e.target.reset(); toast('Guardada como raw/' + d.archivo); loadTree(); }
     else toast('Error: ' + d.error);
   };
+  $('#tpltext').textContent = CLAUDE_TEMPLATE.replace('AAAA-MM-DD\n---', new Date().toISOString().slice(0, 10) + '\n---');
   $('#mdfile').onchange = e => { uploadMd([...e.target.files]); e.target.value = ''; };
   const drop = $('#drop');
   ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
   ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
   drop.addEventListener('drop', e => uploadMd([...e.dataTransfer.files]));
+}
+
+const CLAUDE_TEMPLATE = "Genera una fuente para mi segundo cerebro como un único archivo .md descargable.\n\nFormato obligatorio:\n\n---\ntitle: \"Título descriptivo\"\norigen: claude\nbasado_en: [URLs de las fuentes originales que hayas usado; si no hay, deja []]\nautor: \"Autor original, si lo hay\"\ncreado: AAAA-MM-DD\n---\n\n# Título\n\nContenido en markdown: resumen, puntos clave y datos concretos.\n\nReglas:\n- Escribe en español; conserva en su idioma original nombres propios, términos técnicos y citas breves.\n- No inventes datos ni URLs. Si algo es incierto o es inferencia tuya, márcalo con \"(inferencia)\".\n- Cita las fuentes originales en \"basado_en\" y, cuando aporte, en el texto.\n- Nombre del archivo: AAAA-MM-DD-titulo-en-minusculas-con-guiones.md\n\nTema / contenido:\n";
+async function copyTemplate() {
+  const text = $('#tpltext').textContent;
+  try { await navigator.clipboard.writeText(text); }
+  catch {  // http o permisos: copia con selección
+    const r = document.createRange(); r.selectNodeContents($('#tpltext'));
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); document.execCommand('copy'); sel.removeAllRanges();
+  }
+  toast('Plantilla copiada');
 }
 
 // Sube archivos .md tal cual a raw/ (sin conexión, se encolan en el dispositivo)
