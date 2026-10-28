@@ -1,3 +1,4 @@
+import os
 import re
 import shutil
 import subprocess
@@ -19,8 +20,10 @@ class TestFrontend(unittest.TestCase):
         areas = re.findall(r"(\w+):'", re.search(r"const AREAS = \{(.*?)\}", html).group(1))
         self.assertEqual(sorted(areas), sorted(listed), "Las áreas de la app y de CLAUDE.md no coinciden")
 
-    @unittest.skipUnless(shutil.which("node"), "node no instalado")
+    # En local se salta si no hay node; en CI (variable CI) es obligatorio
+    @unittest.skipUnless(shutil.which("node") or os.environ.get("CI"), "node no instalado")
     def test_js_syntax(self):
+        self.assertTrue(shutil.which("node"), "node es obligatorio en CI")
         html = (APP / "index.html").read_text(encoding="utf-8")
         scripts = re.findall(r"<script>([\s\S]*?)</script>", html)
         self.assertTrue(scripts)
