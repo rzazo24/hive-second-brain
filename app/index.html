@@ -174,6 +174,9 @@
   .tpl summary svg { width:18px; height:18px; color:var(--ink); flex-shrink:0; }
   .tpl summary::after { content:"▾"; margin-left:auto; color:var(--muted); transition:transform .15s; }
   .tpl[open] summary::after { transform:rotate(180deg); }
+  .seg { display:inline-flex; background:var(--hover); border-radius:10px; padding:3px; margin:0 0 10px; }
+  .seg button { border:none; background:none; padding:6px 12px; border-radius:8px; font-size:13.5px; font-weight:600; color:var(--muted); cursor:pointer; }
+  .seg button.on { background:var(--amber); color:var(--on-amber); }
   .tpl .sub { font-size:13.5px; color:var(--muted); margin:0 0 10px; }
   .tpl code { background:var(--code); color:var(--ink); border-radius:4px; padding:0 4px; }
   .tpl pre { background:var(--charcoal); color:#f3ecdc; border-radius:10px; padding:14px; font-size:12.5px; white-space:pre-wrap;
@@ -496,7 +499,7 @@ function showHelp() {
     <ul>
       <li>Escribe un <b>título</b> y pega el <b>contenido</b> (texto o markdown). La URL y el autor son opcionales, pero ayudan a citar la fuente.</li>
       <li>También puedes <b>subir archivos .md</b> (uno o varios) con el recuadro de arriba del formulario${m ? '' : ' o arrastrándolos encima'}. Se guardan tal cual, con su frontmatter si lo tienen.</li>
-      <li>Si generas el .md con <b>Claude</b> (claude.ai), copia la plantilla de <i>¿Generas el .md con Claude?</i> en Añadir. El archivo saldrá con <code>origen: claude</code> y el wiki lo marcará como <b>fuente secundaria generada por IA</b>: si contradice a una fuente original, prevalece la original.</li>
+      <li>Si generas el .md con <b>Claude</b> (claude.ai), copia una plantilla de <i>¿Generas el .md con Claude?</i> en Añadir: <b>Esquema</b> (para pedir un esquema de un tema) o <b>Resumen / fuente</b>. El archivo saldrá con <code>origen: claude</code> y el wiki lo marcará como <b>fuente secundaria generada por IA</b>: si contradice a una fuente original, prevalece la original.</li>
       <li>Con Claude Code en la VM también puedes pedir <code>guarda esto como fuente</code>: crea el archivo directamente en <code>raw/</code>.</li>
       <li>La fuente aparece en <b>Pendientes de ingerir</b> hasta que el agente la procese.</li>
       <li>Sin conexión, la fuente se guarda en el dispositivo y se envía sola al recuperar la conexión.</li>
@@ -532,8 +535,12 @@ function showForm() {
     <span><b>Subir archivo .md</b><br><span class="sub">${isMobile() ? 'Toca para elegir uno o varios archivos' : 'Arrastra aquí uno o varios archivos, o haz clic para elegirlos'}</span></span>
   </label>
   <details class="tpl">
-    <summary>${icon('hexes')} ¿Generas el .md con Claude? Usa esta plantilla</summary>
-    <p class="sub">Copia este texto en claude.ai, añade al final el tema o pega el contenido, y sube aquí el .md que te devuelva. Lleva <code>origen: claude</code>, así la ingesta lo trata como fuente secundaria.</p>
+    <summary>${icon('hexes')} ¿Generas el .md con Claude? Usa una plantilla</summary>
+    <div class="seg" role="tablist">
+      <button type="button" class="on" data-tpl="esquema" onclick="pickTemplate('esquema')">Esquema</button>
+      <button type="button" data-tpl="fuente" onclick="pickTemplate('fuente')">Resumen / fuente</button>
+    </div>
+    <p class="sub">Copia este texto en claude.ai, añade al final el tema o pega el contenido, y sube aquí el .md que te devuelva. Lleva <code>origen: claude</code>, así la ingesta lo trata como fuente secundaria. Los esquemas conservan su estructura en el wiki.</p>
     <pre id="tpltext"></pre>
     <button type="button" class="btn" onclick="copyTemplate()">Copiar plantilla</button>
   </details>
@@ -560,7 +567,7 @@ function showForm() {
     if (r.ok) { e.target.reset(); toast('Guardada como raw/' + d.archivo); loadTree(); }
     else toast('Error: ' + d.error);
   };
-  $('#tpltext').textContent = CLAUDE_TEMPLATE.replace('AAAA-MM-DD\n---', new Date().toISOString().slice(0, 10) + '\n---');
+  pickTemplate(store.get('tpl') || 'esquema');
   $('#mdfile').onchange = e => { uploadMd([...e.target.files]); e.target.value = ''; };
   const drop = $('#drop');
   ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
@@ -568,7 +575,12 @@ function showForm() {
   drop.addEventListener('drop', e => uploadMd([...e.dataTransfer.files]));
 }
 
-const CLAUDE_TEMPLATE = "Genera una fuente para mi segundo cerebro como un único archivo .md descargable.\n\nFormato obligatorio:\n\n---\ntitle: \"Título descriptivo\"\norigen: claude\nbasado_en: [URLs de las fuentes originales que hayas usado; si no hay, deja []]\nautor: \"Autor original, si lo hay\"\ncreado: AAAA-MM-DD\n---\n\n# Título\n\nContenido en markdown: resumen, puntos clave y datos concretos.\n\nReglas:\n- Escribe en español; conserva en su idioma original nombres propios, términos técnicos y citas breves.\n- No inventes datos ni URLs. Si algo es incierto o es inferencia tuya, márcalo con \"(inferencia)\".\n- Cita las fuentes originales en \"basado_en\" y, cuando aporte, en el texto.\n- Nombre del archivo: AAAA-MM-DD-titulo-en-minusculas-con-guiones.md\n\nTema / contenido:\n";
+const CLAUDE_TEMPLATES = { esquema: "Hazme un esquema sobre el tema que indico al final, como un único archivo .md descargable para mi segundo cerebro.\n\nFormato obligatorio:\n\n---\ntitle: \"Esquema: tema\"\norigen: claude\nformato: esquema\nbasado_en: [URLs de las fuentes originales que hayas usado; si no hay, deja []]\ncreado: AAAA-MM-DD\n---\n\n# Esquema: tema\n\n## 1. Primera sección\n- Punto clave\n  - Detalle o ejemplo\n- Punto clave\n\n## 2. Segunda sección\n- ...\n\nReglas:\n- Escribe en español; conserva en su idioma original nombres propios, términos técnicos y citas breves.\n- Jerarquía clara: secciones numeradas con ##, puntos con -, como mucho 3 niveles.\n- Usa nombres concretos (personas, herramientas, conceptos) para que se puedan enlazar.\n- No inventes datos ni URLs. Si algo es incierto o es inferencia tuya, márcalo con \"(inferencia)\".\n- Nombre del archivo: AAAA-MM-DD-esquema-tema-en-minusculas-con-guiones.md\n\nTema:\n", fuente: "Genera una fuente para mi segundo cerebro como un único archivo .md descargable.\n\nFormato obligatorio:\n\n---\ntitle: \"Título descriptivo\"\norigen: claude\nbasado_en: [URLs de las fuentes originales que hayas usado; si no hay, deja []]\nautor: \"Autor original, si lo hay\"\ncreado: AAAA-MM-DD\n---\n\n# Título\n\nContenido en markdown: resumen, puntos clave y datos concretos.\n\nReglas:\n- Escribe en español; conserva en su idioma original nombres propios, términos técnicos y citas breves.\n- No inventes datos ni URLs. Si algo es incierto o es inferencia tuya, márcalo con \"(inferencia)\".\n- Cita las fuentes originales en \"basado_en\" y, cuando aporte, en el texto.\n- Nombre del archivo: AAAA-MM-DD-titulo-en-minusculas-con-guiones.md\n\nTema / contenido:\n" };
+function pickTemplate(k) {
+  store.set('tpl', k);
+  document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('on', b.dataset.tpl === k));
+  $('#tpltext').textContent = CLAUDE_TEMPLATES[k].replace('AAAA-MM-DD\n---', new Date().toISOString().slice(0, 10) + '\n---');
+}
 async function copyTemplate() {
   const text = $('#tpltext').textContent;
   try { await navigator.clipboard.writeText(text); }

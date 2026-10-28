@@ -81,6 +81,16 @@ Algunas fuentes no son originales: las ha redactado Claude (en claude.ai o en la
 - Si una fuente `origen: claude` contradice a una fuente original, **prevalece la original**: indícalo con un aviso de contradicción en las páginas afectadas.
 - Si `basado_en` está vacío o no existe, indícalo en la página: la fuente no tiene respaldo verificable.
 
+### Esquemas (`formato: esquema`)
+
+Muchas fuentes `origen: claude` son **esquemas**: un tema organizado en jerarquía (secciones, puntos y subpuntos). Se reconocen por `formato: esquema` en su frontmatter, o porque el contenido es una estructura de títulos y listas anidadas.
+
+- Su valor está en la **estructura**, así que su página en `fuentes/` **conserva el esquema completo** (reescrito en tu redacción y con wikilinks), en vez del resumen de 3–6 líneas. Añade `formato: esquema` al frontmatter de la página.
+- Enlaza cada punto relevante del esquema a su página de entidad o concepto (`[[...]]`), creándola o actualizándola como en cualquier ingesta.
+- Si el tema del esquema no tiene aún página en `conceptos/` o `sintesis/`, créala y enlaza el esquema desde ella como "mapa del tema".
+- Si hay varios esquemas sobre el mismo tema, no los fusiones: enlázalos entre sí y señala las diferencias en la página del tema.
+- Siguen siendo fuentes secundarias: aplica todas las reglas anteriores de `origen: claude`.
+
 ---
 
 ## 4. Operación: INGESTA
@@ -116,6 +126,7 @@ Se activa cuando Raúl te pide guardar algo como fuente: "guarda esto como fuent
 ---
 title: "Título"
 origen: claude          # o "usuario" si el texto es literal de Raúl o de una fuente que te ha pegado
+formato: esquema        # solo si es un esquema; si no, omítelo
 basado_en: [https://...] # URLs de las fuentes originales, si las hay; si no, []
 autor: "..."            # si consta
 creado: AAAA-MM-DD
