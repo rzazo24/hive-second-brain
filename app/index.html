@@ -198,7 +198,17 @@
           font-size:12.5px; font-weight:600; cursor:pointer; }
   .chip:hover { border-color:var(--amber); color:var(--fg); }
   .chip.on { background:var(--amber); border-color:var(--amber); color:var(--on-amber); }
-  .explore .chips { padding:0; margin:4px 0 4px; } .explore .chip { padding:7px 14px; font-size:14px; }
+  .explore .chips { padding:0; margin:4px 0 14px; } .explore .chip { padding:7px 14px; font-size:14px; }
+  @media (max-width:760px) {
+    /* Una sola fila deslizable: no se parte en dos líneas al añadir áreas */
+    .chips { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch;
+             -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);
+                     mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent); }
+    .chips::-webkit-scrollbar { display:none; }
+    .chip { flex-shrink:0; }
+    .explore .chips { padding-right:28px; }
+    .explore .chip { padding:6px 13px; font-size:13.5px; }
+  }
   #schips .chips { padding:10px 14px 4px; }
   .tag.area { background:var(--amber); color:var(--on-amber); font-weight:600; }
   .drop.busy { opacity:.6; pointer-events:none; }
@@ -389,6 +399,8 @@ function setArea(k) {
   areaFilter = areaFilter === k ? '' : k; store.set('area', areaFilter);
   buildTree();
   if ($('#overlay').classList.contains('open')) { $('#schips').innerHTML = areaChips(); drawResults($('#sq').value); }
+  // En móvil la fila de áreas se desliza: deja visible el chip activo tras repintar
+  document.querySelectorAll('.chips .chip.on').forEach(c => c.scrollIntoView({ block:'nearest', inline:'nearest' }));
 }
 const isMobile = () => matchMedia('(max-width:760px)').matches;
 const go = h => { location.hash = h; };
