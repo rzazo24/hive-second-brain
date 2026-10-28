@@ -182,6 +182,14 @@
   .tpl pre { background:var(--charcoal); color:#f3ecdc; border-radius:10px; padding:14px; font-size:12.5px; white-space:pre-wrap;
              max-height:260px; overflow:auto; margin:0 0 12px; }
   .tpl .btn { margin-bottom:14px; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; padding:4px 12px 2px; }
+  .chip { border:1px solid var(--line); background:var(--surface); color:var(--muted); border-radius:999px; padding:3px 11px;
+          font-size:12.5px; font-weight:600; cursor:pointer; }
+  .chip:hover { border-color:var(--amber); color:var(--fg); }
+  .chip.on { background:var(--amber); border-color:var(--amber); color:var(--on-amber); }
+  .explore .chips { padding:0; margin:4px 0 4px; } .explore .chip { padding:7px 14px; font-size:14px; }
+  #schips .chips { padding:10px 14px 4px; }
+  .tag.area { background:var(--amber); color:var(--on-amber); font-weight:600; }
   .drop.busy { opacity:.6; pointer-events:none; }
   .urlbox { display:flex; align-items:center; gap:14px; padding:14px 16px; border:1px solid var(--line); border-radius:14px;
             background:var(--surface); margin-bottom:10px; }
@@ -309,6 +317,7 @@
 <div class="overlay" id="overlay" onclick="if(event.target===this)closeSearch()">
   <div class="modal">
     <div class="msearch"><input id="sq" placeholder="Buscar en Hive2nd Brain…" autocomplete="off" enterkeyhint="search"><button class="cancel" onclick="closeSearch()">Cancelar</button></div>
+    <div id="schips"></div>
     <div class="res" id="sres"></div>
     <div class="hint">↑↓ para moverte · Enter para abrir · Esc para cerrar</div>
   </div>
@@ -352,6 +361,21 @@ const icon = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 const SECTIONS = { fuentes:['Fuentes', icon('doc')], entidades:['Entidades', icon('user')], conceptos:['Conceptos', icon('bulb')], sintesis:['Síntesis', icon('hexes')] };
 const SPECIAL = { index:['Índice', icon('list')], log:['Registro', icon('clock')] };
 let pages = [], pending = [], byName = {}, treeHtml = '';
+const AREAS = { informatica:'Informática', ia:'IA', salud:'Salud', otros:'Otros' };
+let areaFilter = '';
+try { areaFilter = localStorage.getItem('area') || ''; } catch {}
+const matchArea = p => !areaFilter || (p.area || []).includes(areaFilter);
+function areaChips() {
+  const present = new Set(pages.flatMap(p => p.area || []));
+  const keys = Object.keys(AREAS).filter(k => k !== 'otros' || present.has('otros'));
+  return `<div class="chips">${[['', 'Todas'], ...keys.map(k => [k, AREAS[k]])].map(([k, l]) =>
+    `<button type="button" class="chip ${areaFilter === k ? 'on' : ''}" onclick="setArea('${k}')">${l}</button>`).join('')}</div>`;
+}
+function setArea(k) {
+  areaFilter = areaFilter === k ? '' : k; store.set('area', areaFilter);
+  buildTree();
+  if ($('#overlay').classList.contains('open')) { $('#schips').innerHTML = areaChips(); drawResults($('#sq').value); }
+}
 const isMobile = () => matchMedia('(max-width:760px)').matches;
 const go = h => { location.hash = h; };
 const store = { get(k){ try { return localStorage.getItem(k); } catch { return null; } }, set(k,v){ try { localStorage.setItem(k,v); } catch {} } };
@@ -372,15 +396,18 @@ if (store.get('theme')) document.documentElement.dataset.theme = store.get('them
 async function loadTree() {
   const d = await (await fetch('/api/pages')).json();
   pages = d.pages; pending = d.pendientes; byName = Object.fromEntries(pages.map(p => [p.name, p]));
+  buildTree();
+}
+function buildTree() {
   const collapsed = JSON.parse(store.get('collapsed') || '[]');
-  let html = '';
+  let html = areaChips();
   for (const n of ['index','log']) if (byName[n])
     html += `<div class="item" data-h="#/p/${n}" onclick="go('#/p/${n}')"><span class="ico">${SPECIAL[n][1]}</span><span class="lbl">${SPECIAL[n][0]}</span></div>`;
   const group = (key, label, ico, items) => `<div class="group ${collapsed.includes(key) ? 'collapsed' : ''}" data-g="${key}">
       <div class="ghead" onclick="toggleGroup('${key}')"><span class="car">▾</span>${label} · ${items.length}</div>
       <div class="children">${items.length ? items.join('') : '<div class="empty">Vacío</div>'}</div></div>`;
   for (const [k, [label, ico]] of Object.entries(SECTIONS)) {
-    const list = pages.filter(p => p.section === k).sort((a,b) => titleFor(a).localeCompare(titleFor(b), 'es'));
+    const list = pages.filter(p => p.section === k && matchArea(p)).sort((a,b) => titleFor(a).localeCompare(titleFor(b), 'es'));
     html += group(k, label, ico, list.map(p => `<div class="item" data-h="#/p/${p.name}" onclick="go('#/p/${p.name}')"><span class="ico">${ico}</span><span class="lbl">${esc(titleFor(p))}</span></div>`));
   }
   html += group('pendientes', 'Pendientes de ingerir', icon('hourglass'), pending.map(f => `<div class="item" title="${esc(f)}"><span class="ico">${icon('hourglass')}</span><span class="lbl">${esc(f)}</span></div>`));
@@ -420,12 +447,13 @@ function wikilinks(s) {
     return `<a class="wl ${p ? '' : 'broken'}" href="#/p/${encodeURIComponent(n)}">${esc(label || (p ? titleFor(p) : n))}</a>`;
   });
 }
-const PROP = { tipo:[icon('hexes'),'Tipo'], creado:[icon('calendar'),'Creado'], actualizado:[icon('refresh'),'Actualizado'], etiquetas:[icon('tag'),'Etiquetas'], fuentes:[icon('link'),'Fuentes'] };
+const PROP = { area:[icon('dot'),'Área'], tipo:[icon('hexes'),'Tipo'], creado:[icon('calendar'),'Creado'], actualizado:[icon('refresh'),'Actualizado'], etiquetas:[icon('tag'),'Etiquetas'], fuentes:[icon('link'),'Fuentes'] };
 function props(meta) {
   const rows = Object.entries(meta).filter(([k]) => k !== 'titulo').map(([k, v]) => {
     const [ico, label] = PROP[k] || [icon('dot'), k];
     let val = esc(v);
-    if (k === 'etiquetas' || k === 'tipo') val = v.replace(/[\[\]]/g,'').split(',').filter(x => x.trim()).map(t => `<span class="tag">${esc(t.trim())}</span>`).join('');
+    if (k === 'area') val = v.replace(/[\[\]]/g,'').split(',').filter(x => x.trim()).map(t => `<span class="tag area">${esc(AREAS[t.trim()] || t.trim())}</span>`).join('');
+    else if (k === 'etiquetas' || k === 'tipo') val = v.replace(/[\[\]]/g,'').split(',').filter(x => x.trim()).map(t => `<span class="tag">${esc(t.trim())}</span>`).join('');
     else val = wikilinks(val);
     return `<div class="prop"><div class="k"><span>${ico}</span>${esc(label)}</div><div class="v">${val || '<span style="color:var(--muted)">Vacío</span>'}</div></div>`;
   });
@@ -669,8 +697,8 @@ async function uploadMd(files) {
 }
 
 // Search modal (Ctrl/Cmd + K)
-let sel = 0, sitems = [], stimer;
-function openSearch() { $('#overlay').classList.add('open'); $('#sq').value = ''; $('#sq').focus(); doSearch(''); document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === 'search')); }
+let sel = 0, sitems = [], shown = [], stimer;
+function openSearch() { $('#schips').innerHTML = areaChips(); $('#overlay').classList.add('open'); $('#sq').value = ''; $('#sq').focus(); doSearch(''); document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === 'search')); }
 function closeSearch() { $('#overlay').classList.remove('open'); $('#sq').blur(); markActive(); }
 async function doSearch(q) {
   if (!q.trim()) {
@@ -685,15 +713,16 @@ async function doSearch(q) {
   sel = 0; drawResults(q);
 }
 function drawResults(q) {
+  const items = shown = sitems.filter(r => !areaFilter || !byName[r.name] || matchArea(byName[r.name]));
   const hl = s => q.trim() ? esc(s).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), m => `<mark>${m}</mark>`) : esc(s);
-  $('#sres').innerHTML = sitems.map((r, i) => `<div class="row ${i === sel ? 'sel' : ''}" onclick="pick(${i})">
+  $('#sres').innerHTML = items.map((r, i) => `<div class="row ${i === sel ? 'sel' : ''}" onclick="pick(${i})">
       <span class="rh hex">${byName[r.name] ? iconFor(byName[r.name]) : icon('doc')}</span><div>${hl(r.titulo)}${r.snippet ? `<div class="sub">…${hl(r.snippet)}…</div>` : ''}</div></div>`).join('')
     || '<div class="empty" style="padding:16px">Sin resultados</div>';
 }
-function pick(i) { if (sitems[i]) { go('#/p/' + sitems[i].name); closeSearch(); } }
+function pick(i) { if (shown[i]) { go('#/p/' + shown[i].name); closeSearch(); } }
 $('#sq').addEventListener('input', e => { clearTimeout(stimer); stimer = setTimeout(() => doSearch(e.target.value), 150); });
 $('#sq').addEventListener('keydown', e => {
-  if (e.key === 'ArrowDown') { sel = Math.min(sel + 1, sitems.length - 1); drawResults($('#sq').value); e.preventDefault(); }
+  if (e.key === 'ArrowDown') { sel = Math.min(sel + 1, shown.length - 1); drawResults($('#sq').value); e.preventDefault(); }
   if (e.key === 'ArrowUp') { sel = Math.max(sel - 1, 0); drawResults($('#sq').value); e.preventDefault(); }
   if (e.key === 'Enter') pick(sel);
 });

@@ -43,6 +43,11 @@ def frontmatter(text):
     return meta
 
 
+def parse_area(value):
+    """'salud' o '[ia, salud]' -> ['salud'] / ['ia', 'salud']"""
+    return [a.strip().lower() for a in value.strip("[] ").split(",") if a.strip()]
+
+
 def wiki_pages():
     pages = []
     for p in sorted(WIKI.rglob("*.md")):
@@ -55,6 +60,7 @@ def wiki_pages():
             "titulo": meta.get("titulo", p.stem),
             "tipo": meta.get("tipo", ""),
             "actualizado": meta.get("actualizado", ""),
+            "area": parse_area(meta.get("area", "")),
         })
     return pages
 
