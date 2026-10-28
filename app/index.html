@@ -372,7 +372,7 @@ const icon = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 const SECTIONS = { fuentes:['Fuentes', icon('doc')], entidades:['Entidades', icon('user')], conceptos:['Conceptos', icon('bulb')], sintesis:['Síntesis', icon('hexes')] };
 const SPECIAL = { index:['Índice', icon('list')], log:['Registro', icon('clock')] };
 let pages = [], pending = [], byName = {}, treeHtml = '';
-const AREAS = { informatica:'Informática', ia:'IA', salud:'Salud', otros:'Otros' };
+const AREAS = { informatica:'Informática', ia:'IA', salud:'Salud', veterinaria:'Veterinaria', otros:'Otros' };
 let areaFilter = '';
 try { areaFilter = localStorage.getItem('area') || ''; } catch {}
 const matchArea = p => !areaFilter || (p.area || []).includes(areaFilter);
