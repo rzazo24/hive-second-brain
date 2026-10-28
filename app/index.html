@@ -688,6 +688,29 @@ async function route() {
 }
 window.addEventListener('hashchange', route);
 loadTree().catch(() => {}).then(route);
+
+// Refresco automático: detecta cambios en el wiki (p. ej. al terminar una ingesta) sin reabrir la app
+const wikiSignature = () => JSON.stringify([pages.map(p => p.name + '|' + p.actualizado + '|' + p.titulo), pending]);
+let refreshing = false;
+async function refreshWiki() {
+  if (refreshing || document.visibilityState !== 'visible' || !navigator.onLine) return;
+  refreshing = true;
+  const before = wikiSignature();
+  try { await loadTree(); } catch { refreshing = false; return; }
+  refreshing = false;
+  if (wikiSignature() === before) return;
+  const h = location.hash || '#/';
+  // No se repinta el formulario de Añadir (se perdería lo escrito) ni la búsqueda abierta
+  if (h !== '#/nueva' && !$('#overlay').classList.contains('open')) {
+    const y = $('#content').scrollTop;
+    await route();
+    $('#content').scrollTop = y;
+  }
+  toast('Wiki actualizado');
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshWiki(); });
+window.addEventListener('focus', refreshWiki);
+setInterval(refreshWiki, 30 * 1000);
 setOnline();
 // Aviso de versión nueva: el service worker nuevo queda "en espera" hasta que se pulsa Actualizar
 let waitingSW = null;
