@@ -113,6 +113,25 @@ def save_source(data):
     return path.name
 
 
+def save_md_file(data):
+    """Guarda un .md subido tal cual (es la fuente original); solo normaliza el nombre."""
+    name = (data.get("nombre") or "").strip()
+    body = data.get("contenido") or ""
+    if not body.strip():
+        raise ValueError(f"{name or 'El archivo'} está vacío")
+    stem = re.sub(r"\.(md|markdown|txt)$", "", Path(name).name, flags=re.I)
+    base = slugify(stem)
+    if base.startswith("procesado"):
+        base = "fuente-" + base
+    path = RAW / f"{base}.md"
+    n = 2
+    while path.exists():
+        path = RAW / f"{base}-{n}.md"
+        n += 1
+    path.write_text(body if body.endswith("\n") else body + "\n", encoding="utf-8")
+    return path.name
+
+
 class Handler(BaseHTTPRequestHandler):
     def send(self, status, payload, ctype="application/json; charset=utf-8", headers=None):
         body = payload if isinstance(payload, bytes) else json.dumps(payload, ensure_ascii=False).encode()
@@ -156,13 +175,14 @@ class Handler(BaseHTTPRequestHandler):
         self.do_GET()
 
     def do_POST(self):
-        if self.path != "/api/fuente":
+        handlers = {"/api/fuente": save_source, "/api/fuente-md": save_md_file}
+        if self.path not in handlers:
             return self.send(404, {"error": "No encontrado"})
         try:
             length = int(self.headers.get("Content-Length", 0))
             if length > 5_000_000:
                 raise ValueError("Contenido demasiado grande")
-            name = save_source(json.loads(self.rfile.read(length)))
+            name = handlers[self.path](json.loads(self.rfile.read(length)))
             self.send(201, {"archivo": name})
         except (ValueError, json.JSONDecodeError) as e:
             self.send(400, {"error": str(e)})

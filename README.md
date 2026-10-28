@@ -13,6 +13,7 @@ This repository is **public** and contains only the structure: the agent's instr
 ```
 CLAUDE.md     Agent instructions: ingest, query, lint, conventions (in Spanish)
 app/          Web interface (dependency-free Python server + PWA)
+scripts/      Automatic ingest (script + systemd timer)
 data/         Private submodule
   raw/        Raw sources
   wiki/       Generated wiki: fuentes/ (sources), entidades/ (entities),
@@ -34,7 +35,17 @@ python3 app/server.py          # http://127.0.0.1:8765
 
 It only listens on localhost. To use it from other devices, publish it on your private network, e.g. with `tailscale serve --bg 8765`. It has no authentication: do not expose it to the internet.
 
-Features: browsing by section, search (`Ctrl K`), a form to add sources to `raw/`, light/dark theme, a dedicated mobile layout, and installation as a PWA with offline reading. The interface is in Spanish.
+Features: browsing by section, search (`Ctrl K`), a form to add sources to `raw/` (or upload `.md` files), light/dark theme, a dedicated mobile layout, and installation as a PWA with offline reading. The interface is in Spanish.
+
+### Automatic ingest (optional)
+
+`scripts/ingesta-auto.sh` runs the ingest only when there are pending sources, with Claude Code restricted to minimal permissions (no network, no general shell, writes limited to the wiki). A systemd user timer runs it daily at 03:00:
+
+```bash
+chmod +x scripts/ingesta-auto.sh
+cp scripts/systemd/second-brain-ingesta.* ~/.config/systemd/user/
+systemctl --user daemon-reload && systemctl --user enable --now second-brain-ingesta.timer
+```
 
 ### Use it as a template with your own content
 
@@ -57,6 +68,7 @@ Este repositorio es **público** y contiene solo la estructura: las instruccione
 ```
 CLAUDE.md     Instrucciones del agente: ingesta, consulta, lint, convenciones
 app/          Interfaz web (servidor Python sin dependencias + PWA)
+scripts/      Ingesta automática (script + timer de systemd)
 data/         Submódulo privado
   raw/        Fuentes en bruto
   wiki/       Wiki generado: fuentes/, entidades/, conceptos/, sintesis/
@@ -77,7 +89,17 @@ python3 app/server.py          # http://127.0.0.1:8765
 
 Solo escucha en localhost. Para usarla desde otros dispositivos, publícala en tu red privada, por ejemplo con `tailscale serve --bg 8765`. No tiene autenticación: no la expongas a internet.
 
-Funciones: navegación por secciones, búsqueda (`Ctrl K`), formulario para añadir fuentes a `raw/`, tema claro/oscuro, interfaz específica para móvil e instalación como PWA con lectura sin conexión.
+Funciones: navegación por secciones, búsqueda (`Ctrl K`), formulario para añadir fuentes a `raw/` (o subir archivos `.md`), tema claro/oscuro, interfaz específica para móvil e instalación como PWA con lectura sin conexión.
+
+### Ingesta automática (opcional)
+
+`scripts/ingesta-auto.sh` lanza la ingesta solo si hay fuentes pendientes, con Claude Code limitado a permisos mínimos (sin red, sin shell general y escritura solo en el wiki). Un timer de systemd de usuario lo ejecuta cada día a las 03:00:
+
+```bash
+chmod +x scripts/ingesta-auto.sh
+cp scripts/systemd/second-brain-ingesta.* ~/.config/systemd/user/
+systemctl --user daemon-reload && systemctl --user enable --now second-brain-ingesta.timer
+```
 
 ### Usar la plantilla con tu propio contenido
 

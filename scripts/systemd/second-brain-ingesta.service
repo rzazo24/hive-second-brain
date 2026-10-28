@@ -1,0 +1,10 @@
+[Unit]
+Description=Second Brain - ingesta automática de raw/
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/hive-second-brain
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=%h/hive-second-brain/scripts/ingesta-auto.sh
+TimeoutStartSec=45min

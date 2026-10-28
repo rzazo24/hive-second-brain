@@ -161,6 +161,15 @@
          box-shadow:0 2px 0 #c98410; }
   .btn:hover { filter:brightness(1.05); } .btn:active { transform:translateY(1px); box-shadow:none; }
   .scrim { display:none; }
+  .drop { display:flex; align-items:center; gap:14px; padding:16px; border:2px dashed rgba(245,166,35,.55); border-radius:14px;
+          background:var(--hover); cursor:pointer; margin-bottom:6px; transition:background .15s, border-color .15s; }
+  .drop:hover, .drop.over { background:var(--honey); border-color:var(--amber); }
+  .drop .sub { font-size:13px; color:var(--muted); }
+  .drop-ico { width:44px; height:50px; flex-shrink:0; display:grid; place-items:center; background:var(--amber); color:var(--charcoal);
+              clip-path:polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+  .drop-ico svg { width:22px; height:22px; }
+  .or { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; margin:18px 0; }
+  .or::before, .or::after { content:""; flex:1; height:1px; background:var(--line); }
   .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--charcoal); color:#fff7e3; padding:10px 18px;
            border-radius:12px; border-left:4px solid var(--amber); font-size:14px; box-shadow:0 6px 20px var(--shadow); opacity:0; transition:opacity .2s;
            pointer-events:none; z-index:20; max-width:calc(100vw - 32px); }
@@ -309,6 +318,7 @@ const ICON_PATHS = {
   ghost:'<circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01M9 16h6"/>',
   alert:'<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
   dot:'<circle cx="12" cy="12" r="3"/>',
+  upload:'<path d="M12 15V4M7 9l5-5 5 5"/><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/>',
   help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/>',
 };
 const icon = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[n] || ICON_PATHS.doc}</svg>`;
@@ -474,6 +484,7 @@ function showHelp() {
     <h2>Añadir una fuente</h2>
     <ul>
       <li>Escribe un <b>título</b> y pega el <b>contenido</b> (texto o markdown). La URL y el autor son opcionales, pero ayudan a citar la fuente.</li>
+      <li>También puedes <b>subir archivos .md</b> (uno o varios) con el recuadro de arriba del formulario${m ? '' : ' o arrastrándolos encima'}. Se guardan tal cual, con su frontmatter si lo tienen.</li>
       <li>La fuente aparece en <b>Pendientes de ingerir</b> hasta que el agente la procese.</li>
       <li>Sin conexión, la fuente se guarda en el dispositivo y se envía sola al recuperar la conexión.</li>
     </ul>
@@ -502,6 +513,12 @@ function showHelp() {
 function showForm() {
   crumbs(['Añadir fuente']); document.title = 'Añadir fuente · Hive2nd Brain';
   $('#view').innerHTML = `<div class="page-icon">${icon('inbox')}</div>
+  <label class="drop" id="drop">
+    <input type="file" id="mdfile" accept=".md,.markdown,.txt,text/markdown,text/plain" multiple hidden>
+    <span class="drop-ico">${icon('upload')}</span>
+    <span><b>Subir archivo .md</b><br><span class="sub">${isMobile() ? 'Toca para elegir uno o varios archivos' : 'Arrastra aquí uno o varios archivos, o haz clic para elegirlos'}</span></span>
+  </label>
+  <div class="or"><span>o escribe la fuente</span></div>
   <form id="f">
     <input class="big" name="titulo" placeholder="Sin título" required>
     <div class="props">
@@ -524,7 +541,29 @@ function showForm() {
     if (r.ok) { e.target.reset(); toast('Guardada como raw/' + d.archivo); loadTree(); }
     else toast('Error: ' + d.error);
   };
-  if (!isMobile()) $('input.big').focus();
+  $('#mdfile').onchange = e => { uploadMd([...e.target.files]); e.target.value = ''; };
+  const drop = $('#drop');
+  ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', e => uploadMd([...e.dataTransfer.files]));
+}
+
+// Sube archivos .md tal cual a raw/ (sin conexión, se encolan en el dispositivo)
+async function uploadMd(files) {
+  files = files.filter(f => /\.(md|markdown|txt)$/i.test(f.name));
+  if (!files.length) return toast('Solo se admiten archivos .md, .markdown o .txt');
+  let ok = 0, queued = 0, errors = [];
+  for (const f of files) {
+    if (f.size > 5_000_000) { errors.push(`${f.name}: demasiado grande`); continue; }
+    const item = { nombre: f.name, contenido: await f.text() };
+    try {
+      const r = await fetch('/api/fuente-md', { method:'POST', body: JSON.stringify(item) });
+      const d = await r.json();
+      if (r.ok) ok++; else errors.push(`${f.name}: ${d.error}`);
+    } catch { queue.add({ ...item, _endpoint:'/api/fuente-md' }); queued++; }
+  }
+  const msg = [ok && `${ok} archivo(s) guardado(s) en raw/`, queued && `${queued} en cola sin conexión`, errors.length && `Error: ${errors.join('; ')}`].filter(Boolean).join(' · ');
+  toast(msg); if (ok) loadTree();
 }
 
 // Search modal (Ctrl/Cmd + K)
@@ -569,7 +608,8 @@ const queue = {
     let q = this.list(), sent = 0;
     while (q.length) {
       try {
-        const r = await fetch('/api/fuente', { method:'POST', body: JSON.stringify(q[0]) });
+        const { _endpoint = '/api/fuente', ...body } = q[0];
+        const r = await fetch(_endpoint, { method:'POST', body: JSON.stringify(body) });
         if (!r.ok && r.status !== 400) break;   // 400 = dato inválido: se descarta para no bloquear la cola
       } catch { break; }
       q.shift(); sent++; store.set('queue', JSON.stringify(q));
