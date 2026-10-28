@@ -3,6 +3,7 @@
 # 1. Si no hay fuentes pendientes en data/raw/, termina sin llamar al agente.
 # 2. Commitea las capturas nuevas de raw/ en el repo privado (papel de "proceso de captura").
 # 3. Lanza Claude Code en modo no interactivo con permisos mínimos para ejecutar la INGESTA de CLAUDE.md.
+# 4. Commitea y sube el resultado (lo hace el script, así Claude no necesita permisos de git).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -34,16 +35,20 @@ if ! git -C "$DATA" diff --cached --quiet; then
 fi
 
 # Permisos mínimos: el contenido de raw/ no es fiable (posible prompt injection),
-# así que sin red, sin shell general y escritura solo en el wiki y en _procesado.md.
+# así que sin red, sin shell ni git, y escritura solo en el wiki y en _procesado.md
+# (las reglas Edit(...) cubren todas las herramientas que escriben archivos).
 "$CLAUDE_BIN" -p "ingiere lo nuevo de raw/
 
-Esta es una ejecución automática sin supervisión: sigue CLAUDE.md al pie de la letra, no hagas preguntas y termina con el resumen corto." \
+Esta es una ejecución automática sin supervisión: sigue CLAUDE.md al pie de la letra, no hagas preguntas y termina con el resumen corto.
+No hagas commit ni push: el script que te lanza se encarga de git al terminar." \
   --permission-mode default \
   --allowedTools \
     "Read(CLAUDE.md)" "Read(data/**)" "Glob" "Grep" \
-    "Edit(data/wiki/**)" "Write(data/wiki/**)" \
-    "Edit(data/raw/_procesado.md)" "Write(data/raw/_procesado.md)" \
-    "Bash(git -C data status:*)" "Bash(git -C data diff:*)" "Bash(git -C data log:*)" \
-    "Bash(git -C data add:*)" "Bash(git -C data commit:*)" "Bash(git -C data push)" \
-    "Bash(ls:*)" \
-  --disallowedTools "WebFetch" "WebSearch" "Agent"
+    "Edit(data/wiki/**)" "Edit(data/raw/_procesado.md)" \
+  --disallowedTools "Bash" "WebFetch" "WebSearch" "Agent"
+
+git -C "$DATA" add wiki/ raw/_procesado.md
+if ! git -C "$DATA" diff --cached --quiet; then
+  git -C "$DATA" commit -q -m "ingesta automática: ${#pending[@]} fuente(s) ($(date +%F))"
+fi
+git -C "$DATA" push -q || echo "AVISO: el push al repo privado ha fallado; los commits quedan en local"
