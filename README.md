@@ -37,6 +37,14 @@ It only listens on localhost. To use it from other devices, publish it on your p
 
 Features: browsing by section, search (`Ctrl K`), a form to add sources to `raw/` (or upload `.md` files), light/dark theme, a dedicated mobile layout, and installation as a PWA with offline reading. The interface is in Spanish.
 
+### Tests
+
+```bash
+python3 -m unittest discover -s tests
+```
+
+Standard library only, no network access and no use of `data/` (they run on temporary folders). They also run on GitHub Actions on every push.
+
 ### Automatic ingest (optional)
 
 `scripts/ingesta-auto.sh` runs the ingest only when there are pending sources, with Claude Code restricted to minimal permissions (no network, no general shell, writes limited to the wiki). A systemd user timer runs it daily at 03:00:
@@ -90,6 +98,14 @@ python3 app/server.py          # http://127.0.0.1:8765
 Solo escucha en localhost. Para usarla desde otros dispositivos, publícala en tu red privada, por ejemplo con `tailscale serve --bg 8765`. No tiene autenticación: no la expongas a internet.
 
 Funciones: navegación por secciones, búsqueda (`Ctrl K`), formulario para añadir fuentes a `raw/` (o subir archivos `.md`), tema claro/oscuro, interfaz específica para móvil e instalación como PWA con lectura sin conexión.
+
+### Tests
+
+```bash
+python3 -m unittest discover -s tests
+```
+
+Solo biblioteca estándar, sin red y sin tocar `data/` (usan carpetas temporales). También se ejecutan en GitHub Actions en cada push.
 
 ### Ingesta automática (opcional)
 
