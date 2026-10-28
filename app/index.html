@@ -36,6 +36,17 @@
   body { margin:0; background:var(--bg); color:var(--fg); display:flex; height:100vh; overflow:hidden;
          font:16px/1.5 ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; -webkit-tap-highlight-color:transparent; }
   button, input, textarea { font:inherit; color:inherit; }
+  /* Scrollbars finas en tonos miel/ámbar (solo con ratón; en móvil se usan las del sistema) */
+  @media (hover:hover) and (pointer:fine) {
+    * { scrollbar-width:thin; scrollbar-color:rgba(245,166,35,.45) transparent; }
+    ::-webkit-scrollbar { width:10px; height:10px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:rgba(245,166,35,.4); border-radius:999px; border:3px solid transparent; background-clip:padding-box; }
+    ::-webkit-scrollbar-thumb:hover { background:rgba(245,166,35,.75); border-width:2px; background-clip:padding-box; }
+    ::-webkit-scrollbar-thumb:active { background:var(--amber); background-clip:padding-box; }
+    ::-webkit-scrollbar-corner { background:transparent; }
+    .md pre::-webkit-scrollbar-thumb, .tpl pre::-webkit-scrollbar-thumb { background:rgba(245,166,35,.55); background-clip:padding-box; }
+  }
   /* Hexágono con vértices arriba y abajo, como en el icono */
   .hex { clip-path:polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
   .honeycomb {
