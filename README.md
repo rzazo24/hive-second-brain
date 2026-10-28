@@ -65,6 +65,10 @@ git submodule deinit -f data && git rm -f data
 git submodule add https://github.com/<your-user>/<your-private-repo>.git data
 ```
 
+### License
+
+[MIT](LICENSE). Applies to the code and instructions in this repository, not to the private content in `data/`.
+
 ---
 
 ## Español
@@ -126,3 +130,7 @@ cd hive-second-brain
 git submodule deinit -f data && git rm -f data
 git submodule add https://github.com/<tu-usuario>/<tu-repo-privado>.git data
 ```
+
+### Licencia
+
+[MIT](LICENSE). Cubre el código y las instrucciones de este repositorio, no el contenido privado de `data/`.
