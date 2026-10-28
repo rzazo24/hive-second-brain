@@ -119,6 +119,10 @@ def save_md_file(data):
     body = data.get("contenido") or ""
     if not body.strip():
         raise ValueError(f"{name or 'El archivo'} está vacío")
+    # Si ya hay un archivo con el mismo contenido, no se duplica
+    for existing in RAW.glob("*.md"):
+        if existing.name != "_procesado.md" and existing.read_text(encoding="utf-8", errors="replace").rstrip("\n") == body.rstrip("\n"):
+            return existing.name, True
     stem = re.sub(r"\.(md|markdown|txt)$", "", Path(name).name, flags=re.I)
     base = slugify(stem)
     if base.startswith("procesado"):
@@ -129,7 +133,7 @@ def save_md_file(data):
         path = RAW / f"{base}-{n}.md"
         n += 1
     path.write_text(body if body.endswith("\n") else body + "\n", encoding="utf-8")
-    return path.name
+    return path.name, False
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -182,8 +186,9 @@ class Handler(BaseHTTPRequestHandler):
             length = int(self.headers.get("Content-Length", 0))
             if length > 5_000_000:
                 raise ValueError("Contenido demasiado grande")
-            name = handlers[self.path](json.loads(self.rfile.read(length)))
-            self.send(201, {"archivo": name})
+            result = handlers[self.path](json.loads(self.rfile.read(length)))
+            name, dup = result if isinstance(result, tuple) else (result, False)
+            self.send(200 if dup else 201, {"archivo": name, "duplicado": dup})
         except (ValueError, json.JSONDecodeError) as e:
             self.send(400, {"error": str(e)})
 

@@ -182,6 +182,9 @@
   .tpl pre { background:var(--charcoal); color:#f3ecdc; border-radius:10px; padding:14px; font-size:12.5px; white-space:pre-wrap;
              max-height:260px; overflow:auto; margin:0 0 12px; }
   .tpl .btn { margin-bottom:14px; }
+  .drop.busy { opacity:.6; pointer-events:none; }
+  .up { font-size:14px; padding:9px 12px; border-radius:10px; margin:6px 0 0; background:var(--hover); }
+  .up.ok { background:rgba(46,160,67,.14); } .up.err { background:rgba(235,87,87,.15); } .up.note { background:none; color:var(--muted); padding:4px 2px; font-size:13px; }
   .or { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; margin:18px 0; }
   .or::before, .or::after { content:""; flex:1; height:1px; background:var(--line); }
   .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--charcoal); color:#fff7e3; padding:10px 18px;
@@ -534,6 +537,7 @@ function showForm() {
     <span class="drop-ico">${icon('upload')}</span>
     <span><b>Subir archivo .md</b><br><span class="sub">${isMobile() ? 'Toca para elegir uno o varios archivos' : 'Arrastra aquí uno o varios archivos, o haz clic para elegirlos'}</span></span>
   </label>
+  <div id="upstatus"></div>
   <details class="tpl">
     <summary>${icon('hexes')} ¿Generas el .md con Claude? Usa una plantilla</summary>
     <div class="seg" role="tablist">
@@ -594,19 +598,28 @@ async function copyTemplate() {
 // Sube archivos .md tal cual a raw/ (sin conexión, se encolan en el dispositivo)
 async function uploadMd(files) {
   files = files.filter(f => /\.(md|markdown|txt)$/i.test(f.name));
-  if (!files.length) return toast('Solo se admiten archivos .md, .markdown o .txt');
-  let ok = 0, queued = 0, errors = [];
+  const status = $('#upstatus');
+  if (!files.length) { status.innerHTML = `<div class="up err">Solo se admiten archivos .md, .markdown o .txt</div>`; return; }
+  const drop = $('#drop'); drop.classList.add('busy');
+  status.innerHTML = `<div class="up">Subiendo ${files.length} archivo(s)…</div>`;
+  const lines = [];
   for (const f of files) {
-    if (f.size > 5_000_000) { errors.push(`${f.name}: demasiado grande`); continue; }
+    if (f.size > 5_000_000) { lines.push(['err', `${f.name}: demasiado grande (máx. 5 MB)`]); continue; }
     const item = { nombre: f.name, contenido: await f.text() };
     try {
       const r = await fetch('/api/fuente-md', { method:'POST', body: JSON.stringify(item) });
       const d = await r.json();
-      if (r.ok) ok++; else errors.push(`${f.name}: ${d.error}`);
-    } catch { queue.add({ ...item, _endpoint:'/api/fuente-md' }); queued++; }
+      if (!r.ok) lines.push(['err', `${f.name}: ${d.error}`]);
+      else if (d.duplicado) lines.push(['dup', `${f.name}: ya estaba subido como raw/${d.archivo}`]);
+      else lines.push(['ok', `Guardado como raw/${d.archivo}`]);
+    } catch { queue.add({ ...item, _endpoint:'/api/fuente-md' }); lines.push(['dup', `${f.name}: sin conexión, se enviará al reconectar`]); }
   }
-  const msg = [ok && `${ok} archivo(s) guardado(s) en raw/`, queued && `${queued} en cola sin conexión`, errors.length && `Error: ${errors.join('; ')}`].filter(Boolean).join(' · ');
-  toast(msg); if (ok) loadTree();
+  drop.classList.remove('busy');
+  // El resultado queda visible en la página (no solo en un aviso que desaparece)
+  status.innerHTML = lines.map(([k, t]) => `<div class="up ${k}">${k === 'ok' ? '✓' : k === 'err' ? '✕' : 'i'} ${esc(t)}</div>`).join('')
+    + (lines.some(l => l[0] === 'ok') ? '<div class="up note">Queda en Pendientes de ingerir hasta la próxima ingesta.</div>' : '');
+  toast(lines.every(l => l[0] === 'ok') ? 'Archivo(s) subido(s)' : lines[0][1]);
+  loadTree();
 }
 
 // Search modal (Ctrl/Cmd + K)
