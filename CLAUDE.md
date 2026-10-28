@@ -74,6 +74,7 @@ fuentes: [[fuente-1]], [[fuente-2]]   # en entidades, conceptos y síntesis
 
 - **Área:** asigna a cada página un `area` (una o varias). Usa `ia` para inteligencia artificial y aprendizaje automático, `informatica` para el resto de la tecnología (sistemas, programación, herramientas) y `salud` para medicamentos, patologías, farmacia, nutrición y bienestar. Usa `otros` solo si no encaja en ninguna. Las etiquetas (`etiquetas`) son más finas y libres.
 - Una misma entidad puede tocar varias áreas (p. ej. una herramienta de IA para diagnóstico: `[ia, salud]`).
+- **Áreas nuevas:** la lista de áreas puede crecer. No inventes áreas por tu cuenta: si varias fuentes no encajan en las existentes, propón a Raúl un área nueva en el resumen final. Cuando él la apruebe, añádela a la lista de `area` de esta sección (nombre en minúsculas, sin tildes, con guiones). La app la mostrará en sus filtros automáticamente.
 
 ### 3.1 Reglas específicas de salud (`area: salud`)
 

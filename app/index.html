@@ -366,11 +366,14 @@ let areaFilter = '';
 try { areaFilter = localStorage.getItem('area') || ''; } catch {}
 const matchArea = p => !areaFilter || (p.area || []).includes(areaFilter);
 function areaChips() {
+  // Las áreas principales siempre; cualquier área nueva que aparezca en el wiki, automáticamente
   const present = new Set(pages.flatMap(p => p.area || []));
-  const keys = Object.keys(AREAS).filter(k => k !== 'otros' || present.has('otros'));
-  return `<div class="chips">${[['', 'Todas'], ...keys.map(k => [k, AREAS[k]])].map(([k, l]) =>
-    `<button type="button" class="chip ${areaFilter === k ? 'on' : ''}" onclick="setArea('${k}')">${l}</button>`).join('')}</div>`;
+  const keys = [...Object.keys(AREAS).filter(k => k !== 'otros'), ...[...present].filter(k => !AREAS[k]).sort(),
+                ...(present.has('otros') ? ['otros'] : [])];
+  return `<div class="chips">${[['', 'Todas'], ...keys.map(k => [k, areaLabel(k)])].map(([k, l]) =>
+    `<button type="button" class="chip ${areaFilter === k ? 'on' : ''}" onclick="setArea('${esc(k)}')">${esc(l)}</button>`).join('')}</div>`;
 }
+function areaLabel(k) { return AREAS[k] || k.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase()); }
 function setArea(k) {
   areaFilter = areaFilter === k ? '' : k; store.set('area', areaFilter);
   buildTree();
@@ -452,7 +455,7 @@ function props(meta) {
   const rows = Object.entries(meta).filter(([k]) => k !== 'titulo').map(([k, v]) => {
     const [ico, label] = PROP[k] || [icon('dot'), k];
     let val = esc(v);
-    if (k === 'area') val = v.replace(/[\[\]]/g,'').split(',').filter(x => x.trim()).map(t => `<span class="tag area">${esc(AREAS[t.trim()] || t.trim())}</span>`).join('');
+    if (k === 'area') val = v.replace(/[\[\]]/g,'').split(',').filter(x => x.trim()).map(t => `<span class="tag area">${esc(areaLabel(t.trim()))}</span>`).join('');
     else if (k === 'etiquetas' || k === 'tipo') val = v.replace(/[\[\]]/g,'').split(',').filter(x => x.trim()).map(t => `<span class="tag">${esc(t.trim())}</span>`).join('');
     else val = wikilinks(val);
     return `<div class="prop"><div class="k"><span>${ico}</span>${esc(label)}</div><div class="v">${val || '<span style="color:var(--muted)">Vacío</span>'}</div></div>`;
