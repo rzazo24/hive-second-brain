@@ -408,6 +408,14 @@ def import_url(url):
                        and heading(l).lower() not in {site, meta["title"].lower()}), "")
             if h1:
                 meta["title"] = h1
+        # Archivo de un repo de GitHub ("nips/46.md at master · org/repo"): el título está en el documento
+        if re.match(r"https://github\.com/[^/]+/[^/]+/blob/", meta["url"]):
+            lines = [l for l in body.split("\n") if l.strip()]
+            if lines and lines[0].startswith("# "):
+                meta["title"] = heading(lines[0])
+                # "# NIP-46" seguido de "## Nostr Remote Signing" -> "NIP-46: Nostr Remote Signing"
+                if re.fullmatch(r"NIP-\w+", meta["title"]) and len(lines) > 1 and lines[1].startswith("## "):
+                    meta["title"] += ": " + heading(lines[1][1:])
         # Quita los primeros títulos que repitan el de la página o el nombre del sitio
         while body.startswith("# ") and heading(body.split("\n", 1)[0]).lower() in {
                 meta["title"].lower(), site, (meta["sitio"] or "").lower()}:

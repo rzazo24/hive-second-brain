@@ -70,6 +70,14 @@ class TestImportUrl(unittest.TestCase):
             meta, _ = webimport.import_url("https://github.com/tmux/tmux/wiki/Getting-Started")
         self.assertEqual(meta["title"], "tmux/tmux wiki: Getting Started")
 
+    def test_github_blob_title(self):
+        html = ("<html><head><title>nips/46.md at master · nostr-protocol/nips · GitHub</title></head><body><article>"
+                "<h1>NIP-46</h1><h2>Nostr Remote Signing</h2>" + "<p>Texto de la especificación con contenido suficiente.</p>" * 6 +
+                "</article></body></html>")
+        with fake_fetch(html, "https://github.com/nostr-protocol/nips/blob/master/46.md"):
+            meta, body = webimport.import_url("https://github.com/nostr-protocol/nips/blob/master/46.md")
+        self.assertEqual(meta["title"], "NIP-46: Nostr Remote Signing")
+
     def test_title_is_only_site_name(self):
         html = ("<html><head><title>Google Style Guides</title>"
                 "<meta property='og:site_name' content='Google Style Guides'></head><body><article>"
