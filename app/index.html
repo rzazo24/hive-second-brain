@@ -542,7 +542,7 @@ function showHelp() {
     <h2>Cómo funciona</h2>
     <ol>
       <li><b>Captura:</b> añade una fuente desde <i>Añadir</i>. Se guarda tal cual en <code>raw/</code>.</li>
-      <li><b>Ingesta:</b> pide al agente <code>ingiere lo nuevo de raw/</code>. Lee las fuentes pendientes y crea o actualiza las páginas del wiki.</li>
+      <li><b>Ingesta:</b> se hace sola cada noche a las 03:00 si hay fuentes pendientes (hasta 10 por noche). Si no quieres esperar, pide al agente <code>ingiere lo nuevo de raw/</code>. Lee las fuentes pendientes y crea o actualiza las páginas del wiki.</li>
       <li><b>Consulta:</b> navega o busca aquí. Para preguntas sobre el contenido, pregunta al agente: responde citando las páginas del wiki.</li>
     </ol>
     <p>La web no ingiere ni modifica el wiki: solo lo muestra y recoge fuentes nuevas.</p>
@@ -554,7 +554,14 @@ function showHelp() {
           : `<li><b>Menú lateral:</b> Inicio, Añadir fuente, el índice, el registro y todas las páginas por sección. Haz clic en un título de sección para plegarla.</li>`}
       <li><b>Inicio</b> muestra cuántas páginas hay de cada tipo, las fuentes pendientes y lo actualizado recientemente.</li>
       <li>Los enlaces con <b>⬡</b> llevan a otra página del wiki. Si aparecen tachados o con borde discontinuo, esa página todavía no existe.</li>
-      <li>La caja de <b>propiedades</b> de cada página indica su tipo, fechas, etiquetas y las fuentes de las que sale.</li>
+      <li>La caja de <b>propiedades</b> de cada página indica su tipo, área, fechas, etiquetas y las fuentes de las que sale.</li>
+    </ul>
+
+    <h2>Áreas</h2>
+    <ul>
+      <li>Cada página pertenece a una o varias áreas: ${Object.values(AREAS).join(', ')}.</li>
+      <li>Filtra la lista de páginas por área con los botones ${m ? 'de arriba de <i>Explorar</i> (desliza a los lados para ver todos)' : 'de encima de las secciones del menú lateral'}; <b>Todas</b> quita el filtro.</li>
+      <li>Si añades fuentes de un tema que no encaja en ninguna, el agente te propondrá un área nueva; no crea áreas por su cuenta.</li>
     </ul>
 
     <h2>Buscar</h2>
@@ -568,6 +575,8 @@ function showHelp() {
     <ul>
       <li>Escribe un <b>título</b> y pega el <b>contenido</b> (texto o markdown). La URL y el autor son opcionales, pero ayudan a citar la fuente.</li>
       <li><b>Importar desde URL:</b> pega el enlace de un artículo y la app descarga la página, extrae el texto principal y lo guarda en markdown con <code>origen: web</code>. No funciona con páginas que piden iniciar sesión, muros de pago ni webs que cargan el texto con JavaScript: en esos casos, copia y pega el texto.</li>
+      <li><b>Varias URLs de golpe:</b> pega una por línea (o separadas por espacios) y pulsa <i>Importar</i>. Se importan en orden y verás una línea por cada una: importada, ya estaba o error. En la casilla quedan solo las que fallaron, para reintentarlas. ${m ? 'En el móvil, Intro añade una línea.' : '<b>Intro</b> importa y <b>Mayús Intro</b> añade una línea.'}</li>
+      <li>Una URL ya importada no se duplica. El título se limpia solo: quita el nombre del sitio («GitHub - …») y, en archivos de GitHub como los NIPs de Nostr, usa el título del documento.</li>
       <li>También puedes <b>subir archivos .md</b> (uno o varios) con el recuadro de arriba del formulario${m ? '' : ' o arrastrándolos encima'}. Se guardan tal cual, con su frontmatter si lo tienen.</li>
       <li>Si generas el .md con <b>Claude</b> (claude.ai), copia una plantilla de <i>¿Generas el .md con Claude?</i> en Añadir: <b>Esquema</b> (para pedir un esquema de un tema) o <b>Resumen / fuente</b>. El archivo saldrá con <code>origen: claude</code> y el wiki lo marcará como <b>fuente secundaria generada por IA</b>: si contradice a una fuente original, prevalece la original.</li>
       <li>Con Claude Code en la VM también puedes pedir <code>guarda esto como fuente</code>: crea el archivo directamente en <code>raw/</code>.</li>
