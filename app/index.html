@@ -216,10 +216,12 @@
             background:var(--surface); margin-bottom:10px; }
   .urlbox:focus-within { border-color:var(--amber); }
   .urlfield { flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
-  .urlrow { display:flex; gap:8px; }
-  .urlrow input { flex:1; min-width:0; border:1px solid var(--line); background:var(--bg); border-radius:10px; padding:9px 12px; outline:none; font-size:16px; }
-  .urlrow input:focus { border-color:var(--amber); }
+  .urlrow { display:flex; gap:8px; align-items:flex-start; }
+  .urlrow textarea { flex:1; min-width:0; border:1px solid var(--line); background:var(--bg); color:inherit; border-radius:10px; padding:9px 12px; outline:none;
+                     font:inherit; font-size:16px; line-height:1.4; resize:none; overflow:hidden; max-height:40vh; }
+  .urlrow textarea:focus { border-color:var(--amber); }
   .urlrow .btn { width:auto; padding:9px 16px; font-size:15px; flex-shrink:0; }
+  .urlfield .sub { font-size:13px; color:var(--muted); }
   .urlrow .btn:disabled { opacity:.6; }
   @media (max-width:760px) { .urlbox .drop-ico { display:none; } .urlbox { padding:14px; } }
   .up { font-size:14px; padding:9px 12px; border-radius:10px; margin:6px 0 0; background:var(--hover); }
@@ -601,8 +603,9 @@ function showForm() {
     <span class="drop-ico">${icon('link')}</span>
     <div class="urlfield">
       <b>Importar desde URL</b>
+      <span class="sub">Puedes pegar varias, una por línea</span>
       <div class="urlrow">
-        <input type="url" id="urlin" name="url" placeholder="https://…" inputmode="url" autocomplete="off" enterkeyhint="go" required>
+        <textarea id="urlin" name="url" rows="1" placeholder="https://…" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" required></textarea>
         <button class="btn" id="urlbtn">Importar</button>
       </div>
     </div>
@@ -647,7 +650,12 @@ function showForm() {
     else toast('Error: ' + d.error);
   };
   pickTemplate(store.get('tpl') || 'esquema');
-  $('#urlform').onsubmit = e => { e.preventDefault(); importUrl($('#urlin').value.trim()); };
+  $('#urlform').onsubmit = e => { e.preventDefault(); importUrls($('#urlin').value); };
+  const urlin = $('#urlin');
+  const grow = () => { urlin.style.height = 'auto'; urlin.style.height = urlin.scrollHeight + 'px'; };
+  urlin.oninput = grow;
+  // En un ordenador Intro importa y Mayús+Intro añade una línea; en el móvil Intro añade una línea
+  urlin.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !isMobile()) { e.preventDefault(); $('#urlform').requestSubmit(); } };
   $('#mdfile').onchange = e => { uploadMd([...e.target.files]); e.target.value = ''; };
   const drop = $('#drop');
   ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
@@ -671,28 +679,35 @@ async function copyTemplate() {
   toast('Plantilla copiada');
 }
 
-// Importa una página web: el servidor la descarga y la convierte a markdown
-async function importUrl(url) {
-  if (!url) return;
-  const status = $('#upstatus'), btn = $('#urlbtn');
+// Importa una o varias páginas web: el servidor descarga cada una y la convierte a markdown
+async function importUrls(text) {
+  const urls = [...new Set(text.match(/https?:\/\/[^\s<>"]+/g) || [])];
+  const status = $('#upstatus'), btn = $('#urlbtn'), urlin = $('#urlin');
+  if (!urls.length) { status.innerHTML = `<div class="up err">✕ No hay ninguna URL que empiece por http:// o https://</div>`; return; }
   btn.disabled = true; btn.textContent = 'Importando…';
-  status.innerHTML = `<div class="up">Descargando y convirtiendo la página…</div>`;
-  let line;
-  try {
-    const r = await fetch('/api/fuente-url', { method:'POST', body: JSON.stringify({ url }) });
-    const d = await r.json();
-    if (!r.ok) line = ['err', d.error];
-    else if (d.duplicado) line = ['dup', `Esa URL ya estaba importada como raw/${d.archivo}`];
-    else { line = ['ok', `Importada como raw/${d.archivo}`]; $('#urlin').value = ''; }
-  } catch {
-    queue.add({ url, _endpoint:'/api/fuente-url' }); $('#urlin').value = '';
-    line = ['dup', 'Sin conexión: se importará al reconectar'];
+  const lines = [];
+  for (const [i, url] of urls.entries()) {
+    status.innerHTML = `<div class="up">Descargando y convirtiendo ${urls.length > 1 ? `${i + 1} de ${urls.length}` : 'la página'}…</div>`;
+    try {
+      const r = await fetch('/api/fuente-url', { method:'POST', body: JSON.stringify({ url }) });
+      const d = await r.json();
+      if (!r.ok) lines.push(['err', `${url}: ${d.error}`]);
+      else if (d.duplicado) lines.push(['dup', `Ya estaba importada como raw/${d.archivo}`]);
+      else lines.push(['ok', `Importada como raw/${d.archivo}`]);
+    } catch {
+      queue.add({ url, _endpoint:'/api/fuente-url' });
+      lines.push(['dup', `${url}: sin conexión, se importará al reconectar`]);
+    }
   }
+  // En la casilla quedan solo las que fallaron, para reintentarlas
+  urlin.value = urls.filter((u, i) => lines[i][0] === 'err').join('\n'); urlin.style.height = 'auto';
   btn.disabled = false; btn.textContent = 'Importar';
-  status.innerHTML = `<div class="up ${line[0]}">${line[0] === 'ok' ? '✓' : line[0] === 'err' ? '✕' : 'i'} ${esc(line[1])}</div>`
-    + (line[0] === 'ok' ? '<div class="up note">Queda en Pendientes de ingerir hasta la próxima ingesta.</div>' : '');
-  toast(line[0] === 'ok' ? 'Página importada' : line[1]);
-  if (line[0] === 'ok') loadTree();
+  const ok = lines.filter(l => l[0] === 'ok').length, err = lines.filter(l => l[0] === 'err').length;
+  status.innerHTML = lines.map(([k, t]) => `<div class="up ${k}">${k === 'ok' ? '✓' : k === 'err' ? '✕' : 'i'} ${esc(t)}</div>`).join('')
+    + (ok ? '<div class="up note">Quedan en Pendientes de ingerir hasta la próxima ingesta.</div>' : '');
+  toast(urls.length === 1 ? (ok ? 'Página importada' : lines[0][1])
+    : `${ok} importada${ok === 1 ? '' : 's'}${err ? ` · ${err} con error` : ''}${urls.length - ok - err ? ` · ${urls.length - ok - err} ya estaban` : ''}`);
+  if (ok) loadTree();
 }
 
 // Sube archivos .md tal cual a raw/ (sin conexión, se encolan en el dispositivo)
