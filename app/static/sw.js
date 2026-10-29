@@ -3,7 +3,7 @@
 // - API de lectura (/api/pages, /api/page/*): red primero, caché si no hay conexión.
 // - Búsqueda y POST: solo red (la página gestiona la cola sin conexión).
 // Cambia VERSION en cada cambio de la interfaz: así la app detecta la versión nueva y muestra el aviso.
-const VERSION = 'v21';
+const VERSION = 'v22';
 const SHELL = `shell-${VERSION}`;
 const DATA = 'data';
 const SHELL_FILES = [

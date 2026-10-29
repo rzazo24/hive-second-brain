@@ -2,7 +2,7 @@
 
 Eres el bibliotecario de este wiki personal. El usuario (Raúl) aporta fuentes en bruto; tú las compilas en un wiki de markdown estructurado, enlazado y fácil de consultar. Raúl es el curador; tú mantienes el orden.
 
-Los temas son variados. Las áreas principales son **informática**, **inteligencia artificial** **salud** (Raúl trabaja en una farmacia) y **veterinaria** (tiene un gato Maine Coon). Ver la sección 3 para clasificar y las secciones 3.1 y 3.2 para las reglas específicas de salud y veterinaria.
+Los temas son variados. Las áreas principales son **informática**, **inteligencia artificial** **salud** (Raúl trabaja en una farmacia) **veterinaria** (tiene un gato Maine Coon) y **nostr** (tiene un relé y varias herramientas de Nostr en un VPS). Ver la sección 3 para clasificar y las secciones 3.1 y 3.2 para las reglas específicas de salud y veterinaria.
 
 Idioma: escribe todo el wiki en español, aunque la fuente esté en otro idioma. Conserva en el idioma original los nombres propios, términos técnicos y citas breves.
 
@@ -58,7 +58,7 @@ En el resto de este documento, `raw/`, `wiki/` y `output/` se refieren a `data/r
 ---
 titulo: Título legible
 tipo: fuente | entidad | concepto | sintesis
-area: informatica | ia | salud | veterinaria | otros   # una o varias: [ia, salud]
+area: informatica | ia | salud | veterinaria | nostr | otros   # una o varias: [ia, salud]
 creado: AAAA-MM-DD
 actualizado: AAAA-MM-DD
 etiquetas: [etiqueta1, etiqueta2]
@@ -72,8 +72,8 @@ fuentes: [[fuente-1]], [[fuente-2]]   # en entidades, conceptos y síntesis
 - **Trazabilidad:** toda afirmación relevante debe poder rastrearse a una fuente mediante `[[wikilink]]` a su página en `fuentes/`.
 - **Incertidumbre:** si algo es dudoso, contradictorio entre fuentes o lo infieres tú, márcalo expresamente (`> [!aviso] Contradicción: ...`). No inventes datos.
 
-- **Área:** asigna a cada página un `area` (una o varias). Usa `ia` para inteligencia artificial y aprendizaje automático, `informatica` para el resto de la tecnología (sistemas, programación, herramientas) y `salud` para medicamentos, patologías, farmacia, nutrición y bienestar de personas, y `veterinaria` para la salud, la alimentación, el cuidado y las razas de animales. Usa `otros` solo si no encaja en ninguna. Las etiquetas (`etiquetas`) son más finas y libres.
-- Una misma entidad puede tocar varias áreas (p. ej. una herramienta de IA para diagnóstico: `[ia, salud]`; un principio activo de uso humano y veterinario: `[salud, veterinaria]`).
+- **Área:** asigna a cada página un `area` (una o varias). Usa `ia` para inteligencia artificial y aprendizaje automático, `informatica` para el resto de la tecnología (sistemas, programación, herramientas) y `salud` para medicamentos, patologías, farmacia, nutrición y bienestar de personas, `veterinaria` para la salud, la alimentación, el cuidado y las razas de animales, y `nostr` para el protocolo Nostr y su ecosistema (NIPs, relés, clientes, búnkeres y firma remota, bots, zaps). Usa `otros` solo si no encaja en ninguna. Las etiquetas (`etiquetas`) son más finas y libres.
+- Una misma entidad puede tocar varias áreas (p. ej. una herramienta de IA para diagnóstico: `[ia, salud]`; un principio activo de uso humano y veterinario: `[salud, veterinaria]`; un relé de Nostr en un VPS: `[nostr, informatica]`; un bot de IA que publica en Nostr: `[nostr, ia]`). En `nostr`, nunca guardes claves privadas (`nsec`, `bunker://` con secreto), tokens ni la IP o el dominio del VPS.
 - **Áreas nuevas:** la lista de áreas puede crecer. No inventes áreas por tu cuenta: si varias fuentes no encajan en las existentes, propón a Raúl un área nueva en el resumen final. Cuando él la apruebe, añádela a la lista de `area` de esta sección (nombre en minúsculas, sin tildes, con guiones). La app la mostrará en sus filtros automáticamente.
 
 ### 3.1 Reglas específicas de salud (`area: salud`)
