@@ -379,6 +379,7 @@ function applyStaticLang() {
 const SERVER_ERRORS = [
   [/^Faltan título o contenido$/, 'Title or content missing'], [/^(.*) está vacío$/, '$1 is empty'], [/^Falta la URL$/, 'URL missing'],
   [/^No encontrado$/, 'Not found'], [/^Página no encontrada$/, 'Page not found'], [/^Contenido demasiado grande$/, 'Content too large'],
+  [/^Host no permitido$/, 'Host not allowed'], [/^Origen no permitido$/, 'Origin not allowed'], [/^Se espera application\/json$/, 'application/json expected'],
   [/^No se encuentra el servidor (.*)$/, 'Server $1 not found'], [/^Esa dirección es de una red interna y no se puede importar$/, 'That address is on an internal network and cannot be imported'],
   [/^La URL debe empezar por http:\/\/ o https:\/\/$/, 'The URL must start with http:// or https://'],
   [/^Ese enlace no es una página web \((.*)\)$/, 'That link is not a web page ($1)'], [/^La página es demasiado grande$/, 'The page is too large'],
