@@ -1,3 +1,4 @@
+import socket
 import unittest
 from unittest import mock
 
@@ -160,3 +161,29 @@ class TestJoin(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestRebinding(unittest.TestCase):
+    """La conexión va a la dirección comprobada: un dominio que cambia de IP después no pasa."""
+
+    def test_connect_resolves_once_and_checks(self):
+        answers = [[(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", 80))],
+                   [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", 80))]]
+        with mock.patch("socket.getaddrinfo", side_effect=lambda *a, **k: answers.pop(0)):
+            webimport._check_host("rebind.example")  # la primera respuesta es pública
+            with mock.patch("socket.socket") as sock:
+                with self.assertRaises(webimport.ImportError_):
+                    webimport._safe_create_connection(("rebind.example", 80))  # al conectar ya apunta a 127.0.0.1
+                sock.assert_not_called()
+
+    def test_connect_uses_checked_address(self):
+        info = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", 443))]
+        with mock.patch("socket.getaddrinfo", return_value=info), mock.patch("socket.socket") as sock:
+            webimport._safe_create_connection(("ok.example", 443), timeout=5)
+            sock.return_value.connect.assert_called_once_with(("93.184.216.34", 443))
+
+    def test_opener_uses_safe_connections(self):
+        with mock.patch.object(webimport, "_check_url"), mock.patch.object(webimport._SafeHTTPSHandler, "https_open", side_effect=webimport.ImportError_("x")) as op:
+            with self.assertRaises(webimport.ImportError_):
+                webimport.fetch("https://ok.example/")
+            op.assert_called_once()

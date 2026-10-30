@@ -33,7 +33,7 @@ data/         Private submodule
 python3 app/server.py          # http://127.0.0.1:8765
 ```
 
-It only listens on localhost. To use it from other devices, publish it on your private network, e.g. with `tailscale serve --bg 8765`. It has no authentication: do not expose it to the internet.
+It only listens on localhost. To use it from other devices, publish it on your private network, e.g. with `tailscale serve --bg 8765`. It has no authentication: do not expose it to the internet. It only answers to the names it is opened with (localhost and your Tailscale `*.ts.net` name; add others in `SECOND_BRAIN_HOSTS`, comma-separated), and it only accepts writes from its own page, so another website cannot read the wiki or drop sources into `raw/`.
 
 Features: browsing by section, search (`Ctrl K`), a form to add sources to `raw/` (or upload `.md` files), light/dark theme, a dedicated mobile layout, and installation as a PWA with offline reading. The interface is in Spanish.
 
@@ -99,7 +99,7 @@ data/         Submódulo privado
 python3 app/server.py          # http://127.0.0.1:8765
 ```
 
-Solo escucha en localhost. Para usarla desde otros dispositivos, publícala en tu red privada, por ejemplo con `tailscale serve --bg 8765`. No tiene autenticación: no la expongas a internet.
+Solo escucha en localhost. Para usarla desde otros dispositivos, publícala en tu red privada, por ejemplo con `tailscale serve --bg 8765`. No tiene autenticación: no la expongas a internet. Solo responde a los nombres con los que se abre (localhost y tu nombre de Tailscale `*.ts.net`; añade otros en `SECOND_BRAIN_HOSTS`, separados por comas) y solo acepta escrituras desde su propia página, así que otra web no puede leer el wiki ni meter fuentes en `raw/`.
 
 Funciones: navegación por secciones, búsqueda (`Ctrl K`), formulario para añadir fuentes a `raw/` (o subir archivos `.md`), tema claro/oscuro, interfaz específica para móvil e instalación como PWA con lectura sin conexión.
 

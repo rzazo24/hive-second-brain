@@ -8,12 +8,14 @@
 Uso: python3 app/server.py [puerto]   (por defecto 8765, solo localhost)
 """
 import json
+import os
 import re
 import sys
 import unicodedata
 from datetime import date
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import webimport
 
@@ -183,6 +185,43 @@ def save_url(data):
     return path.name, False
 
 
+# ---------- Quién puede hablar con el servidor ----------
+# Sin autenticación, la defensa es saber de dónde viene cada petición:
+# - Host: solo los nombres con los que se abre la app (localhost, el nombre de Tailscale *.ts.net y los de
+#   SECOND_BRAIN_HOSTS, separados por comas). Corta el DNS rebinding: una web con un dominio propio que apunte
+#   a 127.0.0.1 llega con su propio Host y se queda fuera.
+# - POST: además, Origin (si lo hay) del mismo sitio, Sec-Fetch-Site same-origin o none, y Content-Type JSON.
+#   Corta que cualquier web abierta en un dispositivo de la tailnet meta fuentes en raw/ (CSRF): el agente
+#   nocturno las ingeriría. Un formulario o un fetch "simple" de otra web no puede mandar application/json.
+LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
+
+
+def _hostname(value):
+    """'nombre:puerto' o '[::1]:puerto' → nombre en minúsculas, sin puerto."""
+    value = (value or "").strip().lower()
+    if value.startswith("["):
+        return value[1:value.find("]")] if "]" in value else ""
+    return value.rsplit(":", 1)[0] if value.count(":") == 1 else value
+
+
+def host_allowed(host_header):
+    name = _hostname(host_header)
+    extra = {h.strip().lower() for h in os.environ.get("SECOND_BRAIN_HOSTS", "").split(",") if h.strip()}
+    return bool(name) and (name in LOCAL_HOSTS or name in extra or name.endswith(".ts.net"))
+
+
+def post_allowed(headers):
+    """(código, motivo) si hay que rechazar un POST; None si puede pasar."""
+    origin = headers.get("Origin")
+    if origin is not None and (origin == "null" or urlsplit(origin).netloc.lower() != (headers.get("Host") or "").lower()):
+        return 403, "Origen no permitido"
+    if headers.get("Sec-Fetch-Site", "same-origin") not in ("same-origin", "none"):
+        return 403, "Origen no permitido"
+    if (headers.get("Content-Type") or "").split(";")[0].strip().lower() != "application/json":
+        return 415, "Se espera application/json"
+    return None
+
+
 class Handler(BaseHTTPRequestHandler):
     def send(self, status, payload, ctype="application/json; charset=utf-8", headers=None):
         body = payload if isinstance(payload, bytes) else json.dumps(payload, ensure_ascii=False).encode()
@@ -196,6 +235,8 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(body)
 
     def do_GET(self):
+        if not host_allowed(self.headers.get("Host")):
+            return self.send(403, {"error": "Host no permitido"})
         path, _, query = self.path.partition("?")
         params = dict(kv.split("=", 1) for kv in query.split("&") if "=" in kv)
         from urllib.parse import unquote_plus
@@ -227,6 +268,11 @@ class Handler(BaseHTTPRequestHandler):
         self.do_GET()
 
     def do_POST(self):
+        if not host_allowed(self.headers.get("Host")):
+            return self.send(403, {"error": "Host no permitido"})
+        refused = post_allowed(self.headers)
+        if refused:
+            return self.send(refused[0], {"error": refused[1]})
         handlers = {"/api/fuente": save_source, "/api/fuente-md": save_md_file, "/api/fuente-url": save_url}
         if self.path not in handlers:
             return self.send(404, {"error": "No encontrado"})

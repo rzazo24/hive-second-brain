@@ -3,6 +3,7 @@
 Solo usa la librería estándar. La descarga la hace la app al capturar (no el agente),
 y el resultado se trata como dato no fiable igual que cualquier otra fuente de raw/.
 """
+import http.client
 import ipaddress
 import re
 import socket
@@ -35,17 +36,68 @@ class ImportError_(ValueError):
 
 # ---------- Descarga segura ----------
 
-def _check_host(host):
-    """Evita que la app descargue direcciones internas (localhost, red local, tailnet, metadatos de nube)."""
+def _internal(ip):
+    return (ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast
+            or ip.is_unspecified or ip in ipaddress.ip_network("100.64.0.0/10"))
+
+
+def _resolve(host, port=None):
+    """Resuelve UNA vez y comprueba cada dirección. Devuelve las de getaddrinfo, ya revisadas."""
     try:
-        infos = socket.getaddrinfo(host, None)
+        infos = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
     except socket.gaierror:
         raise ImportError_(f"No se encuentra el servidor {host}")
     for info in infos:
-        ip = ipaddress.ip_address(info[4][0].split("%")[0])
-        if (ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast
-                or ip.is_unspecified or ip in ipaddress.ip_network("100.64.0.0/10")):
+        if _internal(ipaddress.ip_address(info[4][0].split("%")[0])):
             raise ImportError_("Esa dirección es de una red interna y no se puede importar")
+    return infos
+
+
+def _check_host(host):
+    """Evita que la app descargue direcciones internas (localhost, red local, tailnet, metadatos de nube)."""
+    _resolve(host)
+
+
+def _safe_create_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None, *args, **kwargs):
+    """La conexión se abre a la dirección que se acaba de comprobar, no a una nueva resolución del nombre.
+    Si no, un dominio que cambia de IP entre la comprobación y la conexión (DNS rebinding) pasaría el filtro."""
+    host, port = address
+    err = None
+    for family, socktype, proto, _, sockaddr in _resolve(host, port):
+        sock = socket.socket(family, socktype, proto)
+        try:
+            if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
+                sock.settimeout(timeout)
+            if source_address:
+                sock.bind(source_address)
+            sock.connect(sockaddr)
+            return sock
+        except OSError as e:
+            err = e
+            sock.close()
+    raise err or OSError(f"No se pudo conectar con {host}")
+
+
+class _SafeHTTPConnection(http.client.HTTPConnection):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._create_connection = _safe_create_connection
+
+
+class _SafeHTTPSConnection(http.client.HTTPSConnection):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._create_connection = _safe_create_connection  # el certificado se sigue comprobando con el nombre
+
+
+class _SafeHTTPHandler(urllib.request.HTTPHandler):
+    def http_open(self, req):
+        return self.do_open(_SafeHTTPConnection, req)
+
+
+class _SafeHTTPSHandler(urllib.request.HTTPSHandler):
+    def https_open(self, req):
+        return self.do_open(_SafeHTTPSConnection, req, context=self._context)
 
 
 def _check_url(url):
@@ -63,7 +115,7 @@ class _SafeRedirect(urllib.request.HTTPRedirectHandler):
 
 def fetch(url):
     _check_url(url)
-    opener = urllib.request.build_opener(_SafeRedirect)
+    opener = urllib.request.build_opener(_SafeRedirect, _SafeHTTPHandler, _SafeHTTPSHandler)
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "text/html,text/plain,text/markdown;q=0.9,*/*;q=0.5",
                                                "Accept-Language": "es,en;q=0.8"})
     try:

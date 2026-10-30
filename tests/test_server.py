@@ -200,3 +200,42 @@ class TestHTTP(TempData, unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestOrigen(TestHTTP):
+    """Quién puede hablar con el servidor: Host conocido y, para escribir, mismo origen y JSON."""
+
+    def call(self, path, method="GET", headers=None, data=None):
+        port = self.httpd.server_address[1]
+        c = __import__("http.client").client.HTTPConnection("127.0.0.1", port)
+        c.request(method, path, body=data, headers=headers or {})
+        r = c.getresponse(); r.read(); c.close()
+        return r.status
+
+    def test_host_desconocido_rechazado(self):
+        # DNS rebinding: una web con su propio dominio apuntando a 127.0.0.1 llega con ese Host
+        self.assertEqual(self.call("/api/pages", headers={"Host": "evil.example:8765"}), 403)
+        self.assertEqual(self.call("/api/pages", headers={"Host": "localhost:8765"}), 200)
+        self.assertEqual(self.call("/api/pages", headers={"Host": "cerebro.tailabc.ts.net"}), 200)
+
+    def test_post_de_otra_web_rechazado(self):
+        port = self.httpd.server_address[1]
+        body = json.dumps({"titulo": "x", "contenido": "y"})
+        host = f"127.0.0.1:{port}"
+        # una web cualquiera que manda texto "simple" (sin preflight): ni Origin ni Content-Type valen
+        self.assertEqual(self.call("/api/fuente", "POST", {"Host": host, "Origin": "https://evil.example", "Content-Type": "application/json"}, body), 403)
+        self.assertEqual(self.call("/api/fuente", "POST", {"Host": host, "Origin": "null", "Content-Type": "application/json"}, body), 403)
+        self.assertEqual(self.call("/api/fuente", "POST", {"Host": host, "Sec-Fetch-Site": "cross-site", "Content-Type": "application/json"}, body), 403)
+        self.assertEqual(self.call("/api/fuente", "POST", {"Host": host, "Origin": f"http://{host}", "Content-Type": "text/plain"}, body), 415)
+        self.assertEqual(list(self.raw_dir()), [])
+        # la propia app: mismo origen y JSON
+        self.assertEqual(self.call("/api/fuente", "POST", {"Host": host, "Origin": f"http://{host}", "Sec-Fetch-Site": "same-origin", "Content-Type": "application/json"}, body), 201)
+
+    def raw_dir(self):
+        return [p.name for p in self.raw.glob("*.md")]
+
+    def test_hostname(self):
+        self.assertEqual(server._hostname("[::1]:8765"), "::1")
+        self.assertEqual(server._hostname("Cerebro.Tail.ts.net:443"), "cerebro.tail.ts.net")
+        self.assertFalse(server.host_allowed(None))
+        self.assertFalse(server.host_allowed("ts.net.evil.example"))
