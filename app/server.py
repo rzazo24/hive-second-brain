@@ -150,15 +150,22 @@ def save_url(data):
     url = (data.get("url") or "").strip()
     if not url:
         raise ValueError("Falta la URL")
-    # Si ya se importó esa URL, no se duplica
-    for existing in RAW.glob("*.md"):
-        head = existing.read_text(encoding="utf-8", errors="replace")[:2000]
-        if re.search(r'^url: "?' + re.escape(url.rstrip("/")) + r'/?"?\s*$', head, re.M):
-            return existing.name, True
+    # Si ya se importó esa URL, no se duplica, salvo que se pida reimportarla
+    # (p. ej. tras mejorar el importador); la versión anterior se conserva intacta
+    same = [p for p in sorted(RAW.glob("*.md"))
+            if re.search(r'^url: "?' + re.escape(url.rstrip("/")) + r'/?"?\s*$',
+                         p.read_text(encoding="utf-8", errors="replace")[:2000], re.M)]
+    if same and not data.get("reimportar"):
+        return same[0].name, True
     try:
         meta, body = webimport.import_url(url)
     except webimport.ImportError_ as e:
         raise ValueError(str(e))
+    # Reimportación sin cambios en el texto: no se crea otra copia
+    for p in same:
+        old = re.sub(r"\A---\n.*?\n---\n", "", p.read_text(encoding="utf-8"), flags=re.S)
+        if old.strip() == body.strip():
+            return p.name, True
     today = date.today().isoformat()
     base = f"{today}-{slugify(meta['title'])}"
     path = RAW / f"{base}.md"

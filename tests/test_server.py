@@ -121,6 +121,12 @@ class TestCaptura(TempData, unittest.TestCase):
             # misma URL (con o sin barra final): duplicado, sin volver a descargar
             self.assertEqual(server.save_url({"url": "https://ej.es/bash/"}), (f"{TODAY}-comandos-bash.md", True))
             self.assertEqual(imp.call_count, 1)
+            # reimportar: si el texto no cambia, no se crea otra copia
+            self.assertEqual(server.save_url({"url": "https://ej.es/bash", "reimportar": True}), (f"{TODAY}-comandos-bash.md", True))
+        with mock.patch.object(server.webimport, "import_url", return_value=(meta, "cuerpo completo")):
+            # si cambia, fuente nueva y la anterior intacta
+            self.assertEqual(server.save_url({"url": "https://ej.es/bash", "reimportar": True}), (f"{TODAY}-comandos-bash-2.md", False))
+            self.assertIn("cuerpo\n", (self.raw / f"{TODAY}-comandos-bash.md").read_text())
 
     def test_save_url_errors(self):
         with self.assertRaises(ValueError):

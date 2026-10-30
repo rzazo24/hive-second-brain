@@ -225,6 +225,7 @@
   .urlrow .btn:disabled { opacity:.6; }
   @media (max-width:760px) { .urlbox .drop-ico { display:none; } .urlbox { padding:14px; } }
   .up { font-size:14px; padding:9px 12px; border-radius:10px; margin:6px 0 0; background:var(--hover); }
+  .linkbtn { background:none; border:0; padding:0 0 0 6px; font:inherit; color:var(--ink); text-decoration:underline; cursor:pointer; }
   .up.ok { background:rgba(46,160,67,.14); } .up.err { background:rgba(235,87,87,.15); } .up.note { background:none; color:var(--muted); padding:4px 2px; font-size:13px; }
   .or { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; margin:18px 0; }
   .or::before, .or::after { content:""; flex:1; height:1px; background:var(--line); }
@@ -582,7 +583,7 @@ function showHelp() {
       <li>Escribe un <b>título</b> y pega el <b>contenido</b> (texto o markdown). La URL y el autor son opcionales, pero ayudan a citar la fuente.</li>
       <li><b>Importar desde URL:</b> pega el enlace de un artículo y la app descarga la página, extrae el texto principal y lo guarda en markdown con <code>origen: web</code>. No funciona con páginas que piden iniciar sesión, muros de pago ni webs que cargan el texto con JavaScript: en esos casos, copia y pega el texto.</li>
       <li><b>Varias URLs de golpe:</b> pega una por línea (o separadas por espacios) y pulsa <i>Importar</i>. Se importan en orden y verás una línea por cada una: importada, ya estaba o error. En la casilla quedan solo las que fallaron, para reintentarlas. ${m ? 'En el móvil, Intro añade una línea.' : '<b>Intro</b> importa y <b>Mayús Intro</b> añade una línea.'}</li>
-      <li>Una URL ya importada no se duplica. El título se limpia solo: quita el nombre del sitio («GitHub - …») y, en archivos de GitHub como los NIPs de Nostr, usa el título del documento.</li>
+      <li>Una URL ya importada no se duplica; si la primera conversión salió incompleta, pulsa <i>Reimportar</i> junto al aviso y se guarda como fuente nueva (la anterior se conserva). El título se limpia solo: quita el nombre del sitio («GitHub - …») y, en archivos de GitHub como los NIPs de Nostr, usa el título del documento.</li>
       <li>También puedes <b>subir archivos .md</b> (uno o varios) con el recuadro de arriba del formulario${m ? '' : ' o arrastrándolos encima'}. Se guardan tal cual, con su frontmatter si lo tienen.</li>
       <li>Si generas el .md con <b>Claude</b> (claude.ai), copia una plantilla de <i>¿Generas el .md con Claude?</i> en Añadir: <b>Esquema</b> (para pedir un esquema de un tema) o <b>Resumen / fuente</b>. El archivo saldrá con <code>origen: claude</code> y el wiki lo marcará como <b>fuente secundaria generada por IA</b>: si contradice a una fuente original, prevalece la original.</li>
       <li>Con Claude Code en la VM también puedes pedir <code>guarda esto como fuente</code>: crea el archivo directamente en <code>raw/</code>.</li>
@@ -707,7 +708,7 @@ async function importUrls(text) {
       const r = await fetch('/api/fuente-url', { method:'POST', body: JSON.stringify({ url }) });
       const d = await r.json();
       if (!r.ok) lines.push(['err', `${url}: ${d.error}`]);
-      else if (d.duplicado) lines.push(['dup', `Ya estaba importada como raw/${d.archivo}`]);
+      else if (d.duplicado) lines.push(['dup', `Ya estaba importada como raw/${d.archivo}`, url]);
       else lines.push(['ok', `Importada como raw/${d.archivo}`]);
     } catch {
       queue.add({ url, _endpoint:'/api/fuente-url' });
@@ -718,11 +719,28 @@ async function importUrls(text) {
   urlin.value = urls.filter((u, i) => lines[i][0] === 'err').join('\n'); urlin.style.height = 'auto';
   btn.disabled = false; btn.textContent = 'Importar';
   const ok = lines.filter(l => l[0] === 'ok').length, err = lines.filter(l => l[0] === 'err').length;
-  status.innerHTML = lines.map(([k, t]) => `<div class="up ${k}">${k === 'ok' ? '✓' : k === 'err' ? '✕' : 'i'} ${esc(t)}</div>`).join('')
+  status.innerHTML = lines.map(([k, t, u]) => `<div class="up ${k}">${k === 'ok' ? '✓' : k === 'err' ? '✕' : 'i'} ${esc(t)}`
+      + (u ? ` <button type="button" class="linkbtn" data-reimport="${esc(u)}">Reimportar</button>` : '') + '</div>').join('')
     + (ok ? '<div class="up note">Quedan en Pendientes de ingerir hasta la próxima ingesta.</div>' : '');
+  status.querySelectorAll('[data-reimport]').forEach(b => b.onclick = () => reimport(b));
   toast(urls.length === 1 ? (ok ? 'Página importada' : lines[0][1])
     : `${ok} importada${ok === 1 ? '' : 's'}${err ? ` · ${err} con error` : ''}${urls.length - ok - err ? ` · ${urls.length - ok - err} ya estaban` : ''}`);
   if (ok) loadTree();
+}
+
+// Vuelve a descargar una URL ya importada (p. ej. si la primera conversión salió incompleta).
+// Se guarda como fuente nueva; la anterior no se toca. Si el texto no ha cambiado, no se duplica.
+async function reimport(btn) {
+  const line = btn.parentElement;
+  btn.disabled = true; btn.textContent = 'Reimportando…';
+  try {
+    const r = await fetch('/api/fuente-url', { method:'POST', body: JSON.stringify({ url: btn.dataset.reimport, reimportar: true }) });
+    const d = await r.json();
+    if (!r.ok) { line.className = 'up err'; line.textContent = `✕ ${d.error}`; return; }
+    line.className = d.duplicado ? 'up dup' : 'up ok';
+    line.textContent = d.duplicado ? `i Sin cambios: el texto es igual que en raw/${d.archivo}` : `✓ Reimportada como raw/${d.archivo} (la anterior se conserva)`;
+    if (!d.duplicado) { toast('Página reimportada'); loadTree(); }
+  } catch { btn.disabled = false; btn.textContent = 'Reimportar'; toast('Sin conexión con el servidor'); }
 }
 
 // Sube archivos .md tal cual a raw/ (sin conexión, se encolan en el dispositivo)
