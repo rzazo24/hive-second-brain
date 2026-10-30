@@ -137,6 +137,23 @@ class TestSSRF(unittest.TestCase):
 
 
 class TestJoin(unittest.TestCase):
+    def test_keeps_figure_tables_and_overflow_hidden(self):
+        # #2: tablas de WordPress dentro de <figure> y bloques con clases como overflow-hidden
+        html = """<html><head><title>Dosis</title></head><body><article>
+<section class="overflow-hidden"><h2>Dosis</h2><p>Texto de la sección con la pauta.</p></section>
+<figure class="wp-block-table"><table><tr><th>Peso</th><th>Dosis</th></tr><tr><td>4 kg</td><td>1 comp</td></tr></table>
+<figcaption>Tabla de pautas</figcaption><img src="x.png"></figure>
+<div class="has-sidebar"><p>Contenido principal junto a la barra lateral.</p></div>
+<div class="sidebar-left">Enlaces del menú lateral</div><div class="hidden">Oculto</div>
+<p>Texto de relleno suficiente para superar el mínimo de caracteres que exige el importador al extraer el artículo.</p>
+</article></body></html>"""
+        with fake_fetch(html):
+            _, body = webimport.import_url("https://blog.ej.es/dosis")
+        for t in ("## Dosis", "pauta", "| 4 kg | 1 comp |", "Tabla de pautas", "Contenido principal"):
+            self.assertIn(t, body)
+        for t in ("menú lateral", "Oculto", "x.png"):
+            self.assertNotIn(t, body)
+
     def test_lists_stay_together(self):
         self.assertEqual(webimport._join(["# T", "- a", "- b", "texto"]), "# T\n\n- a\n- b\n\ntexto")
 

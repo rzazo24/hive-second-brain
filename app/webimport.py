@@ -18,14 +18,15 @@ USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) Hive2ndBrain/1.0 (+captura persona
 
 VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 SKIP = {"script", "style", "noscript", "template", "svg", "canvas", "iframe", "nav", "footer", "aside", "form",
-        "button", "select", "dialog", "figure", "picture", "video", "audio", "object"}
+        "button", "select", "dialog", "picture", "video", "audio", "object"}
 # Clases/ids típicos de navegación, menús y relleno que no forman parte del artículo
-NOISE = re.compile(r"(^|[-_\s])(nav|navbar|navbox|menu|sidebar|share|sharing|social|related|comments?|cookies?|consent|"
+# (desde el inicio de una clase, para no confundir "has-sidebar"; "hidden" solo como clase entera, no "overflow-hidden")
+NOISE = re.compile(r"(^|\s)(?:(nav|navbar|navbox|menu|sidebar|share|sharing|social|related|comments?|cookies?|consent|"
                    r"newsletter|subscribe|advert|ads|promo|breadcrumbs?|toc|mw-editsection|noprint|reflist|references|"
-                   r"interlanguage|langlinks|vector-menu|catlinks|mw-jump-link|skip-link|hidden)([-_\s]|$)", re.I)
+                   r"interlanguage|langlinks|vector-menu|catlinks|mw-jump-link|skip-link)([-_\s]|$)|hidden(\s|$))", re.I)
 
 BLOCK = {"p", "div", "section", "article", "main", "header", "ul", "ol", "li", "pre", "blockquote", "table", "tr",
-         "h1", "h2", "h3", "h4", "h5", "h6", "dl", "dt", "dd", "figcaption", "hr", "br"}
+         "h1", "h2", "h3", "h4", "h5", "h6", "dl", "dt", "dd", "figure", "figcaption", "hr", "br"}
 
 
 class ImportError_(ValueError):
