@@ -1,9 +1,9 @@
 // Service worker de Hive2nd Brain.
 // - Interfaz (shell): caché primero, se actualiza en segundo plano.
-// - API de lectura (/api/pages, /api/page/*): red primero, caché si no hay conexión.
+// - API de lectura (/api/pages, /api/page/*): red primero, caché si no hay conexión (marcada con X-Copia-Guardada).
 // - Búsqueda y POST: solo red (la página gestiona la cola sin conexión).
 // Cambia VERSION en cada cambio de la interfaz: así la app detecta la versión nueva y muestra el aviso.
-const VERSION = 'v24';
+const VERSION = 'v25';
 const SHELL = `shell-${VERSION}`;
 const DATA = 'data';
 const SHELL_FILES = [
@@ -24,6 +24,13 @@ self.addEventListener('activate', e => {
     .then(() => self.clients.claim()));
 });
 
+// Marca las respuestas servidas desde la caché para que la página avise de que no son datos en vivo
+function markCopy(r) {
+  const headers = new Headers(r.headers);
+  headers.set('X-Copia-Guardada', '1');
+  return new Response(r.body, { status: r.status, statusText: r.statusText, headers });
+}
+
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
@@ -32,7 +39,7 @@ self.addEventListener('fetch', e => {
     e.respondWith(fetch(e.request).then(res => {
       if (res.ok) { const copy = res.clone(); caches.open(DATA).then(c => c.put(e.request, copy)); }
       return res;
-    }).catch(() => caches.match(e.request).then(r => r || new Response(
+    }).catch(() => caches.match(e.request).then(r => r ? markCopy(r) : new Response(
       JSON.stringify({ error: 'Sin conexión y sin copia guardada' }),
       { status: 503, headers: { 'Content-Type': 'application/json' } }))));
     return;

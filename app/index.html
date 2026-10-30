@@ -421,8 +421,14 @@ function toggleTheme() {
 }
 if (store.get('theme')) document.documentElement.dataset.theme = store.get('theme');
 
+// null = servidor accesible; '' = sin servidor ni copia; fecha = mostrando la copia guardada de ese momento
+let serverDown = null;
 async function loadTree() {
-  const d = await (await fetch('/api/pages')).json();
+  let res;
+  try { res = await fetch('/api/pages'); } catch (err) { serverDown = ''; setOnline(); throw err; }
+  serverDown = res.headers.get('X-Copia-Guardada') ? (res.headers.get('Date') || '') : null;
+  setOnline();
+  const d = await res.json();
   pages = d.pages; pending = d.pendientes; byName = Object.fromEntries(pages.map(p => [p.name, p]));
   buildTree();
 }
@@ -798,7 +804,18 @@ const queue = {
     if (sent) { toast(`${sent} fuente(s) pendiente(s) enviada(s)`); loadTree(); }
   },
 };
-function setOnline() { document.body.classList.toggle('is-offline', !navigator.onLine); if (navigator.onLine) queue.flush(); }
+let lastDown = true;   // la cola se envía solo al pasar de sin servidor a con servidor (y al arrancar)
+function setOnline() {
+  const down = !navigator.onLine || serverDown !== null;
+  document.body.classList.toggle('is-offline', down);
+  const when = serverDown ? new Date(serverDown) : null;
+  $('#offline').textContent = !navigator.onLine ? 'Sin conexión · mostrando copias guardadas'
+    : serverDown === null ? '' : when && !isNaN(when)
+      ? `Sin conexión con el servidor · mostrando la copia del ${when.toLocaleString('es-ES', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}`
+      : 'Sin conexión con el servidor · comprueba Tailscale';
+  if (!down && lastDown) queue.flush();
+  lastDown = down;
+}
 window.addEventListener('online', setOnline);
 window.addEventListener('offline', setOnline);
 
@@ -819,10 +836,12 @@ const wikiSignature = () => JSON.stringify([pages.map(p => p.name + '|' + p.actu
 let refreshing = false;
 async function refreshWiki() {
   if (refreshing || document.visibilityState !== 'visible' || !navigator.onLine) return;
+  const wasDown = serverDown !== null;
   refreshing = true;
   const before = wikiSignature();
   try { await loadTree(); } catch { refreshing = false; return; }
   refreshing = false;
+  if (wasDown && serverDown === null) toast('Conexión con el servidor recuperada');
   if (wikiSignature() === before) return;
   const h = location.hash || '#/';
   // No se repinta el formulario de Añadir (se perdería lo escrito) ni la búsqueda abierta
