@@ -216,7 +216,10 @@ class TestOrigen(TestHTTP):
         # DNS rebinding: una web con su propio dominio apuntando a 127.0.0.1 llega con ese Host
         self.assertEqual(self.call("/api/pages", headers={"Host": "evil.example:8765"}), 403)
         self.assertEqual(self.call("/api/pages", headers={"Host": "localhost:8765"}), 200)
-        self.assertEqual(self.call("/api/pages", headers={"Host": "cerebro.tailabc.ts.net"}), 200)
+        with mock.patch.object(server, "tailnet_name", lambda refresh=False: "cerebro.tailabc.ts.net"):
+            self.assertEqual(self.call("/api/pages", headers={"Host": "cerebro.tailabc.ts.net"}), 200)
+            # otro nombre de Tailscale (otra tailnet) no vale
+            self.assertEqual(self.call("/api/pages", headers={"Host": "otro.tailzzz.ts.net"}), 403)
 
     def test_post_de_otra_web_rechazado(self):
         port = self.httpd.server_address[1]
@@ -239,3 +242,21 @@ class TestOrigen(TestHTTP):
         self.assertEqual(server._hostname("Cerebro.Tail.ts.net:443"), "cerebro.tail.ts.net")
         self.assertFalse(server.host_allowed(None))
         self.assertFalse(server.host_allowed("ts.net.evil.example"))
+
+    def test_tailnet_name(self):
+        out = json.dumps({"Self": {"DNSName": "Cerebro.TailABC.ts.net."}})
+        server._tailnet.update(name=None, checked=0.0)
+        try:
+            with mock.patch.object(server.subprocess, "run", return_value=mock.Mock(stdout=out)) as run:
+                self.assertEqual(server.tailnet_name(), "cerebro.tailabc.ts.net")
+                self.assertEqual(server.tailnet_name(), "cerebro.tailabc.ts.net")
+                self.assertEqual(run.call_count, 1)                      # se guarda
+                self.assertFalse(server.host_allowed("otro.tailzzz.ts.net"))
+                self.assertEqual(run.call_count, 1)                      # no repregunta antes de 30 s
+            server._tailnet.update(name=None, checked=0.0)
+            with mock.patch.object(server.subprocess, "run", side_effect=OSError):
+                self.assertIsNone(server.tailnet_name())                 # sin Tailscale: solo localhost
+                self.assertFalse(server.host_allowed("cerebro.tailabc.ts.net"))
+                self.assertTrue(server.host_allowed("localhost:8765"))
+        finally:
+            server._tailnet.update(name=None, checked=0.0)

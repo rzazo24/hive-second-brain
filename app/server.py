@@ -10,7 +10,9 @@ Uso: python3 app/server.py [puerto]   (por defecto 8765, solo localhost)
 import json
 import os
 import re
+import subprocess
 import sys
+import time
 import unicodedata
 from datetime import date
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -187,8 +189,8 @@ def save_url(data):
 
 # ---------- Quién puede hablar con el servidor ----------
 # Sin autenticación, la defensa es saber de dónde viene cada petición:
-# - Host: solo los nombres con los que se abre la app (localhost, el nombre de Tailscale *.ts.net y los de
-#   SECOND_BRAIN_HOSTS, separados por comas). Corta el DNS rebinding: una web con un dominio propio que apunte
+# - Host: solo los nombres con los que se abre la app (localhost, el nombre de Tailscale de esta máquina, que se
+#   pregunta a `tailscale status`, y los de SECOND_BRAIN_HOSTS, separados por comas). Corta el DNS rebinding: una web con un dominio propio que apunte
 #   a 127.0.0.1 llega con su propio Host y se queda fuera.
 # - POST: además, Origin (si lo hay) del mismo sitio, Sec-Fetch-Site same-origin o none, y Content-Type JSON.
 #   Corta que cualquier web abierta en un dispositivo de la tailnet meta fuentes en raw/ (CSRF): el agente
@@ -204,10 +206,34 @@ def _hostname(value):
     return value.rsplit(":", 1)[0] if value.count(":") == 1 else value
 
 
+_tailnet = {"name": None, "checked": 0.0}
+
+
+def tailnet_name(refresh=False):
+    """Nombre MagicDNS de esta máquina (p. ej. 'equipo.tailxxxx.ts.net'), o None si Tailscale no responde.
+    Se guarda en memoria; con refresh se vuelve a preguntar, como mucho una vez cada 30 s (por si Tailscale
+    arrancó después que la app o cambió el nombre)."""
+    if _tailnet["name"] is None or refresh:
+        if _tailnet["checked"] and time.monotonic() - _tailnet["checked"] < 30:
+            return _tailnet["name"]
+        _tailnet["checked"] = time.monotonic()
+        try:
+            out = subprocess.run(["tailscale", "status", "--json"], capture_output=True, text=True, timeout=5).stdout
+            _tailnet["name"] = (json.loads(out).get("Self") or {}).get("DNSName", "").rstrip(".").lower() or None
+        except (OSError, ValueError, subprocess.SubprocessError):
+            pass
+    return _tailnet["name"]
+
+
 def host_allowed(host_header):
     name = _hostname(host_header)
     extra = {h.strip().lower() for h in os.environ.get("SECOND_BRAIN_HOSTS", "").split(",") if h.strip()}
-    return bool(name) and (name in LOCAL_HOSTS or name in extra or name.endswith(".ts.net"))
+    if not name:
+        return False
+    if name in LOCAL_HOSTS or name in extra or name == tailnet_name():
+        return True
+    # Un *.ts.net que no es el nuestro: puede que el nombre haya cambiado; se vuelve a preguntar
+    return name.endswith(".ts.net") and name == tailnet_name(refresh=True)
 
 
 def post_allowed(headers):
