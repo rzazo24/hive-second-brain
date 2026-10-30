@@ -225,6 +225,8 @@
   .urlrow .btn:disabled { opacity:.6; }
   @media (max-width:760px) { .urlbox .drop-ico { display:none; } .urlbox { padding:14px; } }
   .up { font-size:14px; padding:9px 12px; border-radius:10px; margin:6px 0 0; background:var(--hover); }
+  .hero .theme.lang { right:58px; font:600 13px/1 inherit; }
+  .corner-btn.lang-btn { font-size:12px; font-weight:600; }
   .linkbtn { background:none; border:0; padding:0 0 0 6px; font:inherit; color:var(--ink); text-decoration:underline; cursor:pointer; }
   .up.ok { background:rgba(46,160,67,.14); } .up.err { background:rgba(235,87,87,.15); } .up.note { background:none; color:var(--muted); padding:4px 2px; font-size:13px; }
   .or { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; margin:18px 0; }
@@ -323,43 +325,70 @@
 <body>
 <aside id="side">
   <div class="ws"><img src="/static/icon-192.png" alt=""> <span>Hive<b>2nd</b> Brain</span></div>
-  <div class="item" onclick="openSearch()"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span><span class="lbl">Buscar</span><span class="count">Ctrl K</span></div>
-  <div class="item" data-h="#/" onclick="go('#/')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.6 12 4.5l7.5 6.1V18.6a1 1 0 0 1-1 1h-4v-5h-5v5h-4a1 1 0 0 1-1-1z"/></svg></span><span class="lbl">Inicio</span></div>
-  <div class="item" data-h="#/nueva" onclick="go('#/nueva')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span><span class="lbl">Añadir fuente</span></div>
-  <div class="item" data-h="#/ayuda" onclick="go('#/ayuda')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></svg></span><span class="lbl">Ayuda</span></div>
+  <div class="item" onclick="openSearch()"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span><span class="lbl" data-en="Search">Buscar</span><span class="count">Ctrl K</span></div>
+  <div class="item" data-h="#/" onclick="go('#/')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.6 12 4.5l7.5 6.1V18.6a1 1 0 0 1-1 1h-4v-5h-5v5h-4a1 1 0 0 1-1-1z"/></svg></span><span class="lbl" data-en="Home">Inicio</span></div>
+  <div class="item" data-h="#/nueva" onclick="go('#/nueva')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span><span class="lbl" data-en="Add source">Añadir fuente</span></div>
+  <div class="item" data-h="#/ayuda" onclick="go('#/ayuda')"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></svg></span><span class="lbl" data-en="Help">Ayuda</span></div>
   <div class="scroll" id="tree"></div>
 </aside>
 <div class="main">
   <div class="offline" id="offline">Sin conexión · mostrando copias guardadas</div>
   <div class="corner">
-    <button class="corner-btn" title="Ayuda" onclick="go('#/ayuda')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></svg></button>
-    <button class="corner-btn" title="Buscar (Ctrl K)" onclick="openSearch()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
-    <button class="corner-btn" title="Cambiar tema claro/oscuro" onclick="toggleTheme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></button>
+    <button class="corner-btn" title="Ayuda" data-en-title="Help" onclick="go('#/ayuda')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></svg></button>
+    <button class="corner-btn" title="Buscar (Ctrl K)" data-en-title="Search (Ctrl K)" onclick="openSearch()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+    <button class="corner-btn lang-btn" title="English" data-en-title="Español" onclick="toggleLang()">EN</button>
+    <button class="corner-btn" title="Cambiar tema claro/oscuro" data-en-title="Switch light/dark theme" onclick="toggleTheme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></button>
   </div>
   <div class="content" id="content"><div class="page" id="view"></div></div>
 </div>
 <div class="overlay" id="overlay" onclick="if(event.target===this)closeSearch()">
   <div class="modal">
-    <div class="msearch"><input id="sq" placeholder="Buscar en Hive2nd Brain…" autocomplete="off" enterkeyhint="search"><button class="cancel" onclick="closeSearch()">Cancelar</button></div>
+    <div class="msearch"><input id="sq" placeholder="Buscar en Hive2nd Brain…" data-en-ph="Search Hive2nd Brain…" autocomplete="off" enterkeyhint="search"><button class="cancel" onclick="closeSearch()" data-en="Cancel">Cancelar</button></div>
     <div id="schips"></div>
     <div class="res" id="sres"></div>
-    <div class="hint">↑↓ para moverte · Enter para abrir · Esc para cerrar</div>
+    <div class="hint" data-en="↑↓ to move · Enter to open · Esc to close">↑↓ para moverte · Enter para abrir · Esc para cerrar</div>
   </div>
 </div>
 <nav class="tabbar">
-  <button data-tab="#/" onclick="go('#/')"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.6 12 4.5l7.5 6.1V18.6a1 1 0 0 1-1 1h-4v-5h-5v5h-4a1 1 0 0 1-1-1z"/></svg></span>Inicio</button>
-  <button data-tab="search" onclick="openSearch()"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>Buscar</button>
-  <button data-tab="#/explorar" onclick="go('#/explorar')"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 19.5 7v9L12 20.5 4.5 16V7z"/><path d="M12 8.5 15 10.3v3.4L12 15.5l-3-1.8v-3.4z"/></svg></span>Explorar</button>
-  <button data-tab="#/nueva" onclick="go('#/nueva')"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5v15M4.5 12h15"/></svg></span>Añadir</button>
+  <button data-tab="#/" onclick="go('#/')"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.6 12 4.5l7.5 6.1V18.6a1 1 0 0 1-1 1h-4v-5h-5v5h-4a1 1 0 0 1-1-1z"/></svg></span><span data-en="Home">Inicio</span></button>
+  <button data-tab="search" onclick="openSearch()"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span><span data-en="Search">Buscar</span></button>
+  <button data-tab="#/explorar" onclick="go('#/explorar')"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 19.5 7v9L12 20.5 4.5 16V7z"/><path d="M12 8.5 15 10.3v3.4L12 15.5l-3-1.8v-3.4z"/></svg></span><span data-en="Explore">Explorar</span></button>
+  <button data-tab="#/nueva" onclick="go('#/nueva')"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5v15M4.5 12h15"/></svg></span><span data-en="Add">Añadir</span></button>
 </nav>
 <div class="toast" id="toast"></div>
 <div class="update" id="update" role="status">
-  <span class="uh hex">↑</span><span>Hay una nueva versión de la app</span>
-  <button class="btn" onclick="applyUpdate()">Actualizar</button>
-  <button class="x" title="Más tarde" onclick="$('#update').classList.remove('show')">×</button>
+  <span class="uh hex">↑</span><span data-en="A new version of the app is available">Hay una nueva versión de la app</span>
+  <button class="btn" onclick="applyUpdate()" data-en="Update">Actualizar</button>
+  <button class="x" title="Más tarde" data-en-title="Later" onclick="$('#update').classList.remove('show')">×</button>
 </div>
 <script>
 const $ = s => document.querySelector(s);
+// Idioma de la interfaz (el contenido del wiki sigue en español): el elegido o el del navegador
+const store0 = k => { try { return localStorage.getItem(k); } catch { return null; } };
+const LANG = store0('lang') || ((navigator.language || 'es').toLowerCase().startsWith('es') ? 'es' : 'en');
+const L = (es, en) => LANG === 'en' ? en : es;
+document.documentElement.lang = LANG;
+function toggleLang() { store.set('lang', LANG === 'en' ? 'es' : 'en'); location.reload(); }
+function applyStaticLang() {
+  if (LANG !== 'en') return;
+  document.querySelectorAll('[data-en]').forEach(e => { e.textContent = e.dataset.en; });
+  document.querySelectorAll('[data-en-title]').forEach(e => { e.title = e.dataset.enTitle; });
+  document.querySelectorAll('[data-en-ph]').forEach(e => { e.placeholder = e.dataset.enPh; });
+  document.querySelectorAll('.lang-btn').forEach(e => { e.textContent = 'ES'; });
+}
+// Mensajes de error del servidor (en español) traducidos al inglés
+const SERVER_ERRORS = [
+  [/^Faltan título o contenido$/, 'Title or content missing'], [/^(.*) está vacío$/, '$1 is empty'], [/^Falta la URL$/, 'URL missing'],
+  [/^No encontrado$/, 'Not found'], [/^Página no encontrada$/, 'Page not found'], [/^Contenido demasiado grande$/, 'Content too large'],
+  [/^No se encuentra el servidor (.*)$/, 'Server $1 not found'], [/^Esa dirección es de una red interna y no se puede importar$/, 'That address is on an internal network and cannot be imported'],
+  [/^La URL debe empezar por http:\/\/ o https:\/\/$/, 'The URL must start with http:// or https://'],
+  [/^Ese enlace no es una página web \((.*)\)$/, 'That link is not a web page ($1)'], [/^La página es demasiado grande$/, 'The page is too large'],
+  [/^La web respondió con un error (\d+) \(requiere acceso o bloquea descargas\)$/, 'The site returned error $1 (it requires access or blocks downloads)'],
+  [/^La web respondió con un error (\d+)$/, 'The site returned error $1'], [/^No se pudo conectar: (.*)$/, 'Could not connect: $1'],
+  [/^La web tardó demasiado en responder$/, 'The site took too long to respond'],
+  [/^No se pudo extraer el texto del artículo.*$/, 'Could not extract the article text (the site may load it with JavaScript or require login). Copy and paste the text instead.'],
+];
+const serverError = m => { if (LANG !== 'en') return m; for (const [re, en] of SERVER_ERRORS) if (re.test(m)) return m.replace(re, en); return m; };
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Iconos de línea (mismo trazo que la barra inferior); heredan el color del texto
 const ICON_PATHS = {
@@ -382,10 +411,10 @@ const ICON_PATHS = {
   help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/>',
 };
 const icon = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[n] || ICON_PATHS.doc}</svg>`;
-const SECTIONS = { fuentes:['Fuentes', icon('doc')], entidades:['Entidades', icon('user')], conceptos:['Conceptos', icon('bulb')], sintesis:['Síntesis', icon('hexes')] };
-const SPECIAL = { index:['Índice', icon('list')], log:['Registro', icon('clock')] };
+const SECTIONS = { fuentes:[L('Fuentes','Sources'), icon('doc')], entidades:[L('Entidades','Entities'), icon('user')], conceptos:[L('Conceptos','Concepts'), icon('bulb')], sintesis:[L('Síntesis','Syntheses'), icon('hexes')] };
+const SPECIAL = { index:[L('Índice','Index'), icon('list')], log:[L('Registro','Log'), icon('clock')] };
 let pages = [], pending = [], byName = {}, treeHtml = '';
-const AREAS = { informatica:'Informática', ia:'IA', salud:'Salud', veterinaria:'Veterinaria', nostr:'Nostr', otros:'Otros' };
+const AREAS = { informatica:L('Informática','Computing'), ia:L('IA','AI'), salud:L('Salud','Health'), veterinaria:L('Veterinaria','Veterinary'), nostr:'Nostr', otros:L('Otros','Other') };
 let areaFilter = '';
 try { areaFilter = localStorage.getItem('area') || ''; } catch {}
 const matchArea = p => !areaFilter || (p.area || []).includes(areaFilter);
@@ -394,7 +423,7 @@ function areaChips() {
   const present = new Set(pages.flatMap(p => p.area || []));
   const keys = [...Object.keys(AREAS).filter(k => k !== 'otros'), ...[...present].filter(k => !AREAS[k]).sort(),
                 ...(present.has('otros') ? ['otros'] : [])];
-  return `<div class="chips">${[['', 'Todas'], ...keys.map(k => [k, areaLabel(k)])].map(([k, l]) =>
+  return `<div class="chips">${[['', L('Todas','All')], ...keys.map(k => [k, areaLabel(k)])].map(([k, l]) =>
     `<button type="button" class="chip ${areaFilter === k ? 'on' : ''}" onclick="setArea('${esc(k)}')">${esc(l)}</button>`).join('')}</div>`;
 }
 function areaLabel(k) { return AREAS[k] || k.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase()); }
@@ -440,12 +469,12 @@ function buildTree() {
     html += `<div class="item" data-h="#/p/${n}" onclick="go('#/p/${n}')"><span class="ico">${SPECIAL[n][1]}</span><span class="lbl">${SPECIAL[n][0]}</span></div>`;
   const group = (key, label, ico, items) => `<div class="group ${collapsed.includes(key) ? 'collapsed' : ''}" data-g="${key}">
       <div class="ghead" onclick="toggleGroup('${key}')"><span class="car">▾</span>${label} · ${items.length}</div>
-      <div class="children">${items.length ? items.join('') : '<div class="empty">Vacío</div>'}</div></div>`;
+      <div class="children">${items.length ? items.join('') : `<div class="empty">${L('Vacío','Empty')}</div>`}</div></div>`;
   for (const [k, [label, ico]] of Object.entries(SECTIONS)) {
     const list = pages.filter(p => p.section === k && matchArea(p)).sort((a,b) => titleFor(a).localeCompare(titleFor(b), 'es'));
     html += group(k, label, ico, list.map(p => `<div class="item" data-h="#/p/${p.name}" onclick="go('#/p/${p.name}')"><span class="ico">${ico}</span><span class="lbl">${esc(titleFor(p))}</span></div>`));
   }
-  html += group('pendientes', 'Pendientes de ingerir', icon('hourglass'), pending.map(f => `<div class="item" title="${esc(f)}"><span class="ico">${icon('hourglass')}</span><span class="lbl">${esc(f)}</span></div>`));
+  html += group('pendientes', L('Pendientes de ingerir','Pending ingestion'), icon('hourglass'), pending.map(f => `<div class="item" title="${esc(f)}"><span class="ico">${icon('hourglass')}</span><span class="lbl">${esc(f)}</span></div>`));
   treeHtml = html;
   $('#tree').innerHTML = html;
   if (location.hash === '#/explorar') showExplore();
@@ -482,7 +511,7 @@ function wikilinks(s) {
     return `<a class="wl ${p ? '' : 'broken'}" href="#/p/${encodeURIComponent(n)}">${esc(label || (p ? titleFor(p) : n))}</a>`;
   });
 }
-const PROP = { area:[icon('dot'),'Área'], tipo:[icon('hexes'),'Tipo'], creado:[icon('calendar'),'Creado'], actualizado:[icon('refresh'),'Actualizado'], etiquetas:[icon('tag'),'Etiquetas'], fuentes:[icon('link'),'Fuentes'] };
+const PROP = { area:[icon('dot'),L('Área','Area')], tipo:[icon('hexes'),L('Tipo','Type')], creado:[icon('calendar'),L('Creado','Created')], actualizado:[icon('refresh'),L('Actualizado','Updated')], etiquetas:[icon('tag'),L('Etiquetas','Tags')], fuentes:[icon('link'),L('Fuentes','Sources')] };
 function props(meta) {
   const rows = Object.entries(meta).filter(([k]) => k !== 'titulo').map(([k, v]) => {
     const [ico, label] = PROP[k] || [icon('dot'), k];
@@ -490,7 +519,7 @@ function props(meta) {
     if (k === 'area') val = v.replace(/[\[\]]/g,'').split(',').filter(x => x.trim()).map(t => `<span class="tag area">${esc(areaLabel(t.trim()))}</span>`).join('');
     else if (k === 'etiquetas' || k === 'tipo') val = v.replace(/[\[\]]/g,'').split(',').filter(x => x.trim()).map(t => `<span class="tag">${esc(t.trim())}</span>`).join('');
     else val = wikilinks(val);
-    return `<div class="prop"><div class="k"><span>${ico}</span>${esc(label)}</div><div class="v">${val || '<span style="color:var(--muted)">Vacío</span>'}</div></div>`;
+    return `<div class="prop"><div class="k"><span>${ico}</span>${esc(label)}</div><div class="v">${val || `<span style="color:var(--muted)">${L('Vacío','Empty')}</span>`}</div></div>`;
   });
   return rows.length ? `<div class="props">${rows.join('')}</div>` : '';
 }
@@ -506,7 +535,7 @@ async function showPage(name) {
   const sec = p?.section ? SECTIONS[p.section]?.[0] : null;
   if (!r.ok) {
     crumbs([sec || 'Wiki', esc(name)]);
-    $('#view').innerHTML = `<div class="page-icon">${icon('ghost')}</div><h1 class="title">${esc(name)}</h1><p style="color:var(--muted)">Esta página todavía no existe en el wiki.</p>`;
+    $('#view').innerHTML = `<div class="page-icon">${icon('ghost')}</div><h1 class="title">${esc(name)}</h1><p style="color:var(--muted)">${L('Esta página todavía no existe en el wiki.','This page does not exist in the wiki yet.')}</p>`;
     return;
   }
   const [meta, body] = parseFM((await r.json()).content);
@@ -514,36 +543,41 @@ async function showPage(name) {
   crumbs([sec, esc(title)].filter(Boolean));
   document.title = `${title} · Hive2nd Brain`;
   $('#view').innerHTML = `<div class="page-icon">${p ? iconFor(p) : icon('doc')}</div><h1 class="title">${esc(title)}</h1>${props(meta)}
-    <div class="md">${renderMd(body.replace(/^\s*#\s+.*\n/, '')) || '<p style="color:var(--muted)">Página vacía.</p>'}</div>`;
+    <div class="md">${renderMd(body.replace(/^\s*#\s+.*\n/, '')) || `<p style="color:var(--muted)">${L('Página vacía.','Empty page.')}</p>`}</div>`;
 }
 
 function showHome() {
-  crumbs(['Inicio']); document.title = 'Hive2nd Brain';
+  crumbs([L('Inicio','Home')]); document.title = 'Hive2nd Brain';
   const count = k => pages.filter(p => p.section === k).length;
   const recent = pages.filter(p => p.actualizado).sort((a,b) => b.actualizado.localeCompare(a.actualizado)).slice(0, 8);
-  const hint = isMobile() ? 'Tu wiki personal, celda a celda.' : 'Tu wiki personal. Pulsa <b>Ctrl K</b> para buscar.';
+  const hint = isMobile() ? L('Tu wiki personal, celda a celda.','Your personal wiki, cell by cell.') : L('Tu wiki personal. Pulsa <b>Ctrl K</b> para buscar.','Your personal wiki. Press <b>Ctrl K</b> to search.');
   $('#view').innerHTML = `<div class="hero honeycomb">
-      <button class="theme" title="Cambiar tema" onclick="toggleTheme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></button>
+      <button class="theme lang" title="${L('English','Español')}" onclick="toggleLang()">${L('EN','ES')}</button>
+      <button class="theme" title="${L('Cambiar tema','Switch theme')}" onclick="toggleTheme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></button>
       <img src="/static/icon-192.png" alt="">
       <h1>Hive<b>2nd</b> Brain</h1><p>${hint}</p></div>
     <div class="cards">${Object.entries(SECTIONS).map(([k,[l]]) => `<div class="card" onclick="go('#/explorar')"><div class="hx hex">${count(k)}</div><div class="l">${l}</div></div>`).join('')}
-      <div class="card dark" onclick="go('#/nueva')"><div class="hx hex">${pending.length}</div><div class="l">Pendientes de ingerir</div></div></div>
-    <h2 class="sec">Actualizado recientemente</h2>
+      <div class="card dark" onclick="go('#/nueva')"><div class="hx hex">${pending.length}</div><div class="l">${L('Pendientes de ingerir','Pending ingestion')}</div></div></div>
+    <h2 class="sec">${L('Actualizado recientemente','Recently updated')}</h2>
     ${recent.map(p => `<div class="row" onclick="go('#/p/${p.name}')"><span class="rh hex">${iconFor(p)}</span><div>${esc(titleFor(p))}<div class="sub">${esc(p.actualizado)}</div></div></div>`).join('')
-      || '<p style="color:var(--muted)">Aún no hay páginas. Añade fuentes y pide al agente “ingiere lo nuevo de raw/”.</p>'}`;
+      || `<p style="color:var(--muted)">${L('Aún no hay páginas. Añade fuentes y pide al agente “ingiere lo nuevo de raw/”.','No pages yet. Add sources and ask the agent “ingiere lo nuevo de raw/”.')}</p>`}`;
 }
 
 function showExplore() {
-  crumbs(['Explorar']); document.title = 'Explorar · Hive2nd Brain';
-  $('#view').innerHTML = `<h1 class="title">Explorar</h1><div class="explore">${treeHtml}
-    <div class="group"><div class="children"><div class="item" onclick="go('#/ayuda')"><span class="ico">${icon('help')}</span><span class="lbl">Ayuda</span></div></div></div></div>`;
+  crumbs([L('Explorar','Explore')]); document.title = L('Explorar','Explore') + ' · Hive2nd Brain';
+  $('#view').innerHTML = `<h1 class="title">${L('Explorar','Explore')}</h1><div class="explore">${treeHtml}
+    <div class="group"><div class="children"><div class="item" onclick="go('#/ayuda')"><span class="ico">${icon('help')}</span><span class="lbl">${L('Ayuda','Help')}</span></div></div></div></div>`;
 }
 
 function showHelp() {
-  crumbs(['Ayuda']); document.title = 'Ayuda · Hive2nd Brain';
+  crumbs([L('Ayuda','Help')]); document.title = L('Ayuda','Help') + ' · Hive2nd Brain';
   const m = isMobile();
-  $('#view').innerHTML = `<div class="page-icon">${icon('help')}</div><h1 class="title">Ayuda</h1>
-  <div class="md">
+  $('#view').innerHTML = `<div class="page-icon">${icon('help')}</div><h1 class="title">${L('Ayuda','Help')}</h1>
+  <div class="md">${LANG === 'en' ? helpEn(m) : helpEs(m)}</div>`;
+}
+
+function helpEs(m) {
+  return `
     <p><b>Hive2nd Brain</b> es tu wiki personal. Tú aportas fuentes (artículos, notas, páginas web) y el agente las ordena en un wiki enlazado de fuentes, entidades, conceptos y síntesis.</p>
 
     <h2>Cómo funciona</h2>
@@ -607,52 +641,128 @@ function showHelp() {
     <h2>Tema claro y oscuro</h2>
     <p>Sigue el tema de tu sistema. Para cambiarlo, usa el botón ${m ? 'de la cabecera del Inicio' : 'de arriba a la derecha'}; la elección se recuerda en este dispositivo.</p>
 
+    <h2>Idioma</h2>
+    <p>La app se muestra en el idioma de tu navegador (español o inglés). Para cambiarlo, usa el botón <b>EN</b>/<b>ES</b> ${m ? 'de la cabecera del Inicio' : 'de arriba a la derecha'} o <a href="javascript:toggleLang()">cambia a inglés aquí</a>. El contenido del wiki sigue en español.</p>
+
     <h2>Acceso</h2>
-    <p>La web solo es accesible desde dispositivos de tu red Tailscale, en <code>${esc(location.origin)}</code>. Si un equipo no la encuentra, comprueba que Tailscale está conectado y que usa su DNS.</p>
-  </div>`;
+    <p>La web solo es accesible desde dispositivos de tu red Tailscale, en <code>${esc(location.origin)}</code>. Si un equipo no la encuentra, comprueba que Tailscale está conectado y que usa su DNS.</p>`;
+}
+
+function helpEn(m) {
+  return `
+    <p><b>Hive2nd Brain</b> is your personal wiki. You add sources (articles, notes, web pages) and the agent organises them into a linked wiki of sources, entities, concepts and syntheses. The wiki content is written in Spanish.</p>
+
+    <h2>How it works</h2>
+    <ol>
+      <li><b>Capture:</b> add a source from <i>Add</i>. It is saved as-is in <code>raw/</code>.</li>
+      <li><b>Ingestion:</b> runs by itself every night at 03:00 if there are pending sources (up to 10 per night). If you don't want to wait, ask the agent <code>ingiere lo nuevo de raw/</code>. It reads the pending sources and creates or updates the wiki pages.</li>
+      <li><b>Query:</b> browse or search here. For questions about the content, ask the agent: it answers citing the wiki pages.</li>
+    </ol>
+    <p>The web app does not ingest or modify the wiki: it only shows it and collects new sources.</p>
+
+    <h2>Getting around</h2>
+    <ul>
+      ${m ? `<li><b>Bottom bar:</b> Home, Search, Explore and Add.</li>
+      <li><b>Explore</b> shows the index, the log and every page by section. Tap a section title to collapse it.</li>`
+          : `<li><b>Sidebar:</b> Home, Add source, the index, the log and every page by section. Click a section title to collapse it.</li>`}
+      <li><b>Home</b> shows how many pages there are of each type, the pending sources and what was updated recently.</li>
+      <li>Links with <b>⬡</b> lead to another wiki page. If they appear struck through or with a dashed border, that page does not exist yet.</li>
+      <li>The <b>properties</b> box on each page shows its type, area, dates, tags and the sources it comes from.</li>
+    </ul>
+
+    <h2>Areas</h2>
+    <ul>
+      <li>Each page belongs to one or more areas: ${Object.values(AREAS).join(', ')}.</li>
+      <li>Filter the page list by area with the buttons ${m ? 'at the top of <i>Explore</i> (swipe sideways to see them all)' : 'above the sections in the sidebar'}; <b>All</b> clears the filter.</li>
+      <li>If you add sources on a topic that fits none of them, the agent will suggest a new area; it does not create areas on its own.</li>
+    </ul>
+
+    <h2>Search</h2>
+    <ul>
+      <li>${m ? 'Tap <b>Search</b> in the bottom bar.' : 'Press <b>Ctrl K</b> (or <b>⌘ K</b> on Mac) or the magnifier at the top right.'}</li>
+      <li>It searches the title and text of every page; matches are highlighted.</li>
+      ${m ? '' : '<li>Use <b>↑ ↓</b> to move through results, <b>Enter</b> to open and <b>Esc</b> to close.</li>'}
+    </ul>
+
+    <h2>Adding a source</h2>
+    <ul>
+      <li>Type a <b>title</b> and paste the <b>content</b> (text or markdown). URL and author are optional, but help cite the source.</li>
+      <li><b>Import from URL:</b> paste an article link and the app downloads the page, extracts the main text and saves it as markdown with <code>origen: web</code>. It doesn't work with pages behind a login, paywalls or sites that load the text with JavaScript: in those cases, copy and paste the text.</li>
+      <li><b>Several URLs at once:</b> paste one per line (or separated by spaces) and press <i>Import</i>. They are imported in order and you'll see one line for each: imported, already there or error. Only the failed ones stay in the box, so you can retry them. ${m ? 'On mobile, Enter adds a line.' : '<b>Enter</b> imports and <b>Shift Enter</b> adds a line.'}</li>
+      <li>A URL already imported is not duplicated; if the first conversion came out incomplete, press <i>Re-import</i> next to the notice and it is saved as a new source (the old one is kept). The title is cleaned automatically: it removes the site name ("GitHub - …") and, for GitHub files such as Nostr NIPs, uses the document title.</li>
+      <li>You can also <b>upload .md files</b> (one or several) with the box above the form${m ? '' : ' or by dragging them onto it'}. They are saved as-is, with their frontmatter if they have one.</li>
+      <li>If you generate the .md with <b>Claude</b> (claude.ai), copy a template from <i>Generating the .md with Claude?</i> in Add: <b>Outline</b> (to ask for an outline of a topic) or <b>Summary / source</b>. The templates are in Spanish because the wiki is. The file will have <code>origen: claude</code> and the wiki will mark it as an <b>AI-generated secondary source</b>: if it contradicts an original source, the original wins.</li>
+      <li>With Claude Code on the VM you can also ask <code>guarda esto como fuente</code>: it creates the file directly in <code>raw/</code>.</li>
+      <li>The source appears in <b>Pending ingestion</b> until the agent processes it.</li>
+      <li>Offline, the source is stored on the device and sent automatically when the connection returns.</li>
+    </ul>
+
+    <h2>Installing the app</h2>
+    <ul>
+      <li><b>Android (Chrome):</b> menu ⋮ → <i>Install app</i>.</li>
+      <li><b>iPhone (Safari):</b> share button → <i>Add to Home Screen</i>.</li>
+      <li><b>PC (Chrome/Edge):</b> install icon in the address bar.</li>
+    </ul>
+
+    <h2>Offline and updates</h2>
+    <ul>
+      <li>Pages you've already opened can be read offline; a <b>Offline</b> band appears at the top. Offline search only looks at titles.</li>
+      <li>If the server can't be reached, the band says so and shows when the saved copy is from.</li>
+      <li>When a new version of the app is out, the notice <b>A new version of the app is available</b> appears: press <i>Update</i>.</li>
+    </ul>
+
+    <h2>Light and dark theme</h2>
+    <p>It follows your system theme. To change it, use the button ${m ? 'in the Home header' : 'at the top right'}; the choice is remembered on this device.</p>
+
+    <h2>Language</h2>
+    <p>The app uses your browser's language (Spanish or English). To change it, use the <b>EN</b>/<b>ES</b> button ${m ? 'in the Home header' : 'at the top right'} or <a href="javascript:toggleLang()">switch to Spanish here</a>. The wiki content stays in Spanish.</p>
+
+    <h2>Access</h2>
+    <p>The site is only reachable from devices on your Tailscale network, at <code>${esc(location.origin)}</code>. If a device can't find it, check that Tailscale is connected and using its DNS.</p>`;
 }
 
 function showForm() {
-  crumbs(['Añadir fuente']); document.title = 'Añadir fuente · Hive2nd Brain';
+  crumbs([L('Añadir fuente','Add source')]); document.title = L('Añadir fuente','Add source') + ' · Hive2nd Brain';
   $('#view').innerHTML = `<div class="page-icon">${icon('inbox')}</div>
   <form class="urlbox" id="urlform">
     <span class="drop-ico">${icon('link')}</span>
     <div class="urlfield">
-      <b>Importar desde URL</b>
-      <span class="sub">Puedes pegar varias, una por línea</span>
+      <b>${L('Importar desde URL','Import from URL')}</b>
+      <span class="sub">${L('Puedes pegar varias, una por línea','You can paste several, one per line')}</span>
       <div class="urlrow">
         <textarea id="urlin" name="url" rows="1" placeholder="https://…" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" required></textarea>
-        <button class="btn" id="urlbtn">Importar</button>
+        <button class="btn" id="urlbtn">${L('Importar','Import')}</button>
       </div>
     </div>
   </form>
   <label class="drop" id="drop">
     <input type="file" id="mdfile" accept=".md,.markdown,.txt,text/markdown,text/plain" multiple hidden>
     <span class="drop-ico">${icon('upload')}</span>
-    <span><b>Subir archivo .md</b><br><span class="sub">${isMobile() ? 'Toca para elegir uno o varios archivos' : 'Arrastra aquí uno o varios archivos, o haz clic para elegirlos'}</span></span>
+    <span><b>${L('Subir archivo .md','Upload .md file')}</b><br><span class="sub">${isMobile() ? L('Toca para elegir uno o varios archivos','Tap to choose one or more files') : L('Arrastra aquí uno o varios archivos, o haz clic para elegirlos','Drag one or more files here, or click to choose them')}</span></span>
   </label>
   <div id="upstatus"></div>
   <details class="tpl">
-    <summary>${icon('hexes')} ¿Generas el .md con Claude? Usa una plantilla</summary>
+    <summary>${icon('hexes')} ${L('¿Generas el .md con Claude? Usa una plantilla','Generating the .md with Claude? Use a template')}</summary>
     <div class="seg" role="tablist">
-      <button type="button" class="on" data-tpl="esquema" onclick="pickTemplate('esquema')">Esquema</button>
-      <button type="button" data-tpl="fuente" onclick="pickTemplate('fuente')">Resumen / fuente</button>
+      <button type="button" class="on" data-tpl="esquema" onclick="pickTemplate('esquema')">${L('Esquema','Outline')}</button>
+      <button type="button" data-tpl="fuente" onclick="pickTemplate('fuente')">${L('Resumen / fuente','Summary / source')}</button>
     </div>
-    <p class="sub">Copia este texto en claude.ai, añade al final el tema o pega el contenido, y sube aquí el .md que te devuelva. Lleva <code>origen: claude</code>, así la ingesta lo trata como fuente secundaria. Los esquemas conservan su estructura en el wiki.</p>
+    <p class="sub">${L('Copia este texto en claude.ai, añade al final el tema o pega el contenido, y sube aquí el .md que te devuelva. Lleva <code>origen: claude</code>, así la ingesta lo trata como fuente secundaria. Los esquemas conservan su estructura en el wiki.',
+      'Copy this text into claude.ai, add the topic or paste the content at the end, and upload the .md it returns here. It carries <code>origen: claude</code>, so ingestion treats it as a secondary source. Outlines keep their structure in the wiki. The template is in Spanish because the wiki is.')}</p>
     <pre id="tpltext"></pre>
-    <button type="button" class="btn" onclick="copyTemplate()">Copiar plantilla</button>
+    <button type="button" class="btn" onclick="copyTemplate()">${L('Copiar plantilla','Copy template')}</button>
   </details>
-  <div class="or"><span>o escribe la fuente</span></div>
+  <div class="or"><span>${L('o escribe la fuente','or write the source')}</span></div>
   <form id="f">
-    <input class="big" name="titulo" placeholder="Sin título" required>
+    <input class="big" name="titulo" placeholder="${L('Sin título','Untitled')}" required>
     <div class="props">
-      <div class="field"><label>${icon('link')} URL</label><input name="url" placeholder="Vacío"></div>
-      <div class="field"><label>${icon('user')} Autor</label><input name="autor" placeholder="Vacío"></div>
+      <div class="field"><label>${icon('link')} URL</label><input name="url" placeholder="${L('Vacío','Empty')}"></div>
+      <div class="field"><label>${icon('user')} ${L('Autor','Author')}</label><input name="autor" placeholder="${L('Vacío','Empty')}"></div>
     </div>
-    <textarea class="body" name="contenido" placeholder="Pega aquí el contenido de la fuente (markdown o texto)…" required></textarea>
+    <textarea class="body" name="contenido" placeholder="${L('Pega aquí el contenido de la fuente (markdown o texto)…','Paste the source content here (markdown or text)…')}" required></textarea>
     <div class="form-foot" style="display:flex;gap:12px;align-items:center;margin-top:16px">
-      <button class="btn">Guardar en raw/</button>
-      <span style="color:var(--muted);font-size:13px">Después pide al agente “ingiere lo nuevo de raw/”.</span>
+      <button class="btn">${L('Guardar en raw/','Save to raw/')}</button>
+      <span style="color:var(--muted);font-size:13px">${L('Después pide al agente “ingiere lo nuevo de raw/”.','Then ask the agent “ingiere lo nuevo de raw/”.')}</span>
     </div>
   </form>`;
   $('#f').onsubmit = async e => {
@@ -660,10 +770,10 @@ function showForm() {
     const data = Object.fromEntries(new FormData(e.target));
     let r;
     try { r = await fetch('/api/fuente', { method:'POST', body: JSON.stringify(data) }); }
-    catch { queue.add(data); e.target.reset(); toast('Sin conexión: guardada en el móvil, se enviará al reconectar'); return; }
+    catch { queue.add(data); e.target.reset(); toast(L('Sin conexión: guardada en el dispositivo, se enviará al reconectar','Offline: saved on this device, it will be sent when the connection returns')); return; }
     const d = await r.json();
-    if (r.ok) { e.target.reset(); toast('Guardada como raw/' + d.archivo); loadTree(); }
-    else toast('Error: ' + d.error);
+    if (r.ok) { e.target.reset(); toast(L('Guardada como raw/','Saved as raw/') + d.archivo); loadTree(); }
+    else toast('Error: ' + serverError(d.error));
   };
   pickTemplate(store.get('tpl') || 'esquema');
   $('#urlform').onsubmit = e => { e.preventDefault(); importUrls($('#urlin').value); };
@@ -692,39 +802,41 @@ async function copyTemplate() {
     const r = document.createRange(); r.selectNodeContents($('#tpltext'));
     const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); document.execCommand('copy'); sel.removeAllRanges();
   }
-  toast('Plantilla copiada');
+  toast(L('Plantilla copiada','Template copied'));
 }
 
 // Importa una o varias páginas web: el servidor descarga cada una y la convierte a markdown
 async function importUrls(text) {
   const urls = [...new Set(text.match(/https?:\/\/[^\s<>"]+/g) || [])];
   const status = $('#upstatus'), btn = $('#urlbtn'), urlin = $('#urlin');
-  if (!urls.length) { status.innerHTML = `<div class="up err">✕ No hay ninguna URL que empiece por http:// o https://</div>`; return; }
-  btn.disabled = true; btn.textContent = 'Importando…';
+  if (!urls.length) { status.innerHTML = `<div class="up err">✕ ${L('No hay ninguna URL que empiece por http:// o https://','There is no URL starting with http:// or https://')}</div>`; return; }
+  btn.disabled = true; btn.textContent = L('Importando…','Importing…');
   const lines = [];
   for (const [i, url] of urls.entries()) {
-    status.innerHTML = `<div class="up">Descargando y convirtiendo ${urls.length > 1 ? `${i + 1} de ${urls.length}` : 'la página'}…</div>`;
+    status.innerHTML = `<div class="up">${L('Descargando y convirtiendo','Downloading and converting')} ${urls.length > 1 ? `${i + 1} ${L('de','of')} ${urls.length}` : L('la página','the page')}…</div>`;
     try {
       const r = await fetch('/api/fuente-url', { method:'POST', body: JSON.stringify({ url }) });
       const d = await r.json();
-      if (!r.ok) lines.push(['err', `${url}: ${d.error}`]);
-      else if (d.duplicado) lines.push(['dup', `Ya estaba importada como raw/${d.archivo}`, url]);
-      else lines.push(['ok', `Importada como raw/${d.archivo}`]);
+      if (!r.ok) lines.push(['err', `${url}: ${serverError(d.error)}`]);
+      else if (d.duplicado) lines.push(['dup', `${L('Ya estaba importada como','Already imported as')} raw/${d.archivo}`, url]);
+      else lines.push(['ok', `${L('Importada como','Imported as')} raw/${d.archivo}`]);
     } catch {
       queue.add({ url, _endpoint:'/api/fuente-url' });
-      lines.push(['dup', `${url}: sin conexión, se importará al reconectar`]);
+      lines.push(['dup', `${url}: ${L('sin conexión, se importará al reconectar','offline, it will be imported when the connection returns')}`]);
     }
   }
   // En la casilla quedan solo las que fallaron, para reintentarlas
   urlin.value = urls.filter((u, i) => lines[i][0] === 'err').join('\n'); urlin.style.height = 'auto';
-  btn.disabled = false; btn.textContent = 'Importar';
+  btn.disabled = false; btn.textContent = L('Importar','Import');
   const ok = lines.filter(l => l[0] === 'ok').length, err = lines.filter(l => l[0] === 'err').length;
   status.innerHTML = lines.map(([k, t, u]) => `<div class="up ${k}">${k === 'ok' ? '✓' : k === 'err' ? '✕' : 'i'} ${esc(t)}`
-      + (u ? ` <button type="button" class="linkbtn" data-reimport="${esc(u)}">Reimportar</button>` : '') + '</div>').join('')
-    + (ok ? '<div class="up note">Quedan en Pendientes de ingerir hasta la próxima ingesta.</div>' : '');
+      + (u ? ` <button type="button" class="linkbtn" data-reimport="${esc(u)}">${L('Reimportar','Re-import')}</button>` : '') + '</div>').join('')
+    + (ok ? `<div class="up note">${L('Quedan en Pendientes de ingerir hasta la próxima ingesta.','They stay in Pending ingestion until the next ingestion.')}</div>` : '');
   status.querySelectorAll('[data-reimport]').forEach(b => b.onclick = () => reimport(b));
-  toast(urls.length === 1 ? (ok ? 'Página importada' : lines[0][1])
-    : `${ok} importada${ok === 1 ? '' : 's'}${err ? ` · ${err} con error` : ''}${urls.length - ok - err ? ` · ${urls.length - ok - err} ya estaban` : ''}`);
+  const rest = urls.length - ok - err;
+  toast(urls.length === 1 ? (ok ? L('Página importada','Page imported') : lines[0][1])
+    : L(`${ok} importada${ok === 1 ? '' : 's'}${err ? ` · ${err} con error` : ''}${rest ? ` · ${rest} ya estaban` : ''}`,
+        `${ok} imported${err ? ` · ${err} with errors` : ''}${rest ? ` · ${rest} already there` : ''}`));
   if (ok) loadTree();
 }
 
@@ -732,41 +844,42 @@ async function importUrls(text) {
 // Se guarda como fuente nueva; la anterior no se toca. Si el texto no ha cambiado, no se duplica.
 async function reimport(btn) {
   const line = btn.parentElement;
-  btn.disabled = true; btn.textContent = 'Reimportando…';
+  btn.disabled = true; btn.textContent = L('Reimportando…','Re-importing…');
   try {
     const r = await fetch('/api/fuente-url', { method:'POST', body: JSON.stringify({ url: btn.dataset.reimport, reimportar: true }) });
     const d = await r.json();
-    if (!r.ok) { line.className = 'up err'; line.textContent = `✕ ${d.error}`; return; }
+    if (!r.ok) { line.className = 'up err'; line.textContent = `✕ ${serverError(d.error)}`; return; }
     line.className = d.duplicado ? 'up dup' : 'up ok';
-    line.textContent = d.duplicado ? `i Sin cambios: el texto es igual que en raw/${d.archivo}` : `✓ Reimportada como raw/${d.archivo} (la anterior se conserva)`;
-    if (!d.duplicado) { toast('Página reimportada'); loadTree(); }
-  } catch { btn.disabled = false; btn.textContent = 'Reimportar'; toast('Sin conexión con el servidor'); }
+    line.textContent = d.duplicado ? `i ${L('Sin cambios: el texto es igual que en','No changes: the text is the same as in')} raw/${d.archivo}`
+      : `✓ ${L('Reimportada como','Re-imported as')} raw/${d.archivo} ${L('(la anterior se conserva)','(the old one is kept)')}`;
+    if (!d.duplicado) { toast(L('Página reimportada','Page re-imported')); loadTree(); }
+  } catch { btn.disabled = false; btn.textContent = L('Reimportar','Re-import'); toast(L('Sin conexión con el servidor','No connection to the server')); }
 }
 
 // Sube archivos .md tal cual a raw/ (sin conexión, se encolan en el dispositivo)
 async function uploadMd(files) {
   files = files.filter(f => /\.(md|markdown|txt)$/i.test(f.name));
   const status = $('#upstatus');
-  if (!files.length) { status.innerHTML = `<div class="up err">Solo se admiten archivos .md, .markdown o .txt</div>`; return; }
+  if (!files.length) { status.innerHTML = `<div class="up err">${L('Solo se admiten archivos .md, .markdown o .txt','Only .md, .markdown or .txt files are accepted')}</div>`; return; }
   const drop = $('#drop'); drop.classList.add('busy');
-  status.innerHTML = `<div class="up">Subiendo ${files.length} archivo(s)…</div>`;
+  status.innerHTML = `<div class="up">${L(`Subiendo ${files.length} archivo(s)…`, `Uploading ${files.length} file(s)…`)}</div>`;
   const lines = [];
   for (const f of files) {
-    if (f.size > 5_000_000) { lines.push(['err', `${f.name}: demasiado grande (máx. 5 MB)`]); continue; }
+    if (f.size > 5_000_000) { lines.push(['err', `${f.name}: ${L('demasiado grande (máx. 5 MB)','too large (max. 5 MB)')}`]); continue; }
     const item = { nombre: f.name, contenido: await f.text() };
     try {
       const r = await fetch('/api/fuente-md', { method:'POST', body: JSON.stringify(item) });
       const d = await r.json();
-      if (!r.ok) lines.push(['err', `${f.name}: ${d.error}`]);
-      else if (d.duplicado) lines.push(['dup', `${f.name}: ya estaba subido como raw/${d.archivo}`]);
-      else lines.push(['ok', `Guardado como raw/${d.archivo}`]);
-    } catch { queue.add({ ...item, _endpoint:'/api/fuente-md' }); lines.push(['dup', `${f.name}: sin conexión, se enviará al reconectar`]); }
+      if (!r.ok) lines.push(['err', `${f.name}: ${serverError(d.error)}`]);
+      else if (d.duplicado) lines.push(['dup', `${f.name}: ${L('ya estaba subido como','already uploaded as')} raw/${d.archivo}`]);
+      else lines.push(['ok', `${L('Guardado como','Saved as')} raw/${d.archivo}`]);
+    } catch { queue.add({ ...item, _endpoint:'/api/fuente-md' }); lines.push(['dup', `${f.name}: ${L('sin conexión, se enviará al reconectar','offline, it will be sent when the connection returns')}`]); }
   }
   drop.classList.remove('busy');
   // El resultado queda visible en la página (no solo en un aviso que desaparece)
   status.innerHTML = lines.map(([k, t]) => `<div class="up ${k}">${k === 'ok' ? '✓' : k === 'err' ? '✕' : 'i'} ${esc(t)}</div>`).join('')
-    + (lines.some(l => l[0] === 'ok') ? '<div class="up note">Queda en Pendientes de ingerir hasta la próxima ingesta.</div>' : '');
-  toast(lines.every(l => l[0] === 'ok') ? 'Archivo(s) subido(s)' : lines[0][1]);
+    + (lines.some(l => l[0] === 'ok') ? `<div class="up note">${L('Queda en Pendientes de ingerir hasta la próxima ingesta.','It stays in Pending ingestion until the next ingestion.')}</div>` : '');
+  toast(lines.every(l => l[0] === 'ok') ? L('Archivo(s) subido(s)','File(s) uploaded') : lines[0][1]);
   loadTree();
 }
 
@@ -791,7 +904,7 @@ function drawResults(q) {
   const hl = s => q.trim() ? esc(s).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), m => `<mark>${m}</mark>`) : esc(s);
   $('#sres').innerHTML = items.map((r, i) => `<div class="row ${i === sel ? 'sel' : ''}" onclick="pick(${i})">
       <span class="rh hex">${byName[r.name] ? iconFor(byName[r.name]) : icon('doc')}</span><div>${hl(r.titulo)}${r.snippet ? `<div class="sub">…${hl(r.snippet)}…</div>` : ''}</div></div>`).join('')
-    || '<div class="empty" style="padding:16px">Sin resultados</div>';
+    || `<div class="empty" style="padding:16px">${L('Sin resultados','No results')}</div>`;
 }
 function pick(i) { if (shown[i]) { go('#/p/' + shown[i].name); closeSearch(); } }
 $('#sq').addEventListener('input', e => { clearTimeout(stimer); stimer = setTimeout(() => doSearch(e.target.value), 150); });
@@ -819,7 +932,7 @@ const queue = {
       } catch { break; }
       q.shift(); sent++; store.set('queue', JSON.stringify(q));
     }
-    if (sent) { toast(`${sent} fuente(s) pendiente(s) enviada(s)`); loadTree(); }
+    if (sent) { toast(L(`${sent} fuente(s) pendiente(s) enviada(s)`, `${sent} pending source(s) sent`)); loadTree(); }
   },
 };
 let lastDown = true;   // la cola se envía solo al pasar de sin servidor a con servidor (y al arrancar)
@@ -827,10 +940,10 @@ function setOnline() {
   const down = !navigator.onLine || serverDown !== null;
   document.body.classList.toggle('is-offline', down);
   const when = serverDown ? new Date(serverDown) : null;
-  $('#offline').textContent = !navigator.onLine ? 'Sin conexión · mostrando copias guardadas'
+  $('#offline').textContent = !navigator.onLine ? L('Sin conexión · mostrando copias guardadas','Offline · showing saved copies')
     : serverDown === null ? '' : when && !isNaN(when)
-      ? `Sin conexión con el servidor · mostrando la copia del ${when.toLocaleString('es-ES', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}`
-      : 'Sin conexión con el servidor · comprueba Tailscale';
+      ? `${L('Sin conexión con el servidor · mostrando la copia del','No connection to the server · showing the copy from')} ${when.toLocaleString(L('es-ES','en-GB'), { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}`
+      : L('Sin conexión con el servidor · comprueba Tailscale','No connection to the server · check Tailscale');
   if (!down && lastDown) queue.flush();
   lastDown = down;
 }
@@ -847,6 +960,7 @@ async function route() {
   showHome();
 }
 window.addEventListener('hashchange', route);
+applyStaticLang();
 loadTree().catch(() => {}).then(route);
 
 // Refresco automático: detecta cambios en el wiki (p. ej. al terminar una ingesta) sin reabrir la app
@@ -859,7 +973,7 @@ async function refreshWiki() {
   const before = wikiSignature();
   try { await loadTree(); } catch { refreshing = false; return; }
   refreshing = false;
-  if (wasDown && serverDown === null) toast('Conexión con el servidor recuperada');
+  if (wasDown && serverDown === null) toast(L('Conexión con el servidor recuperada','Connection to the server restored'));
   if (wikiSignature() === before) return;
   const h = location.hash || '#/';
   // No se repinta el formulario de Añadir (se perdería lo escrito) ni la búsqueda abierta
@@ -868,7 +982,7 @@ async function refreshWiki() {
     await route();
     $('#content').scrollTop = y;
   }
-  toast('Wiki actualizado');
+  toast(L('Wiki actualizado','Wiki updated'));
 }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshWiki(); });
 window.addEventListener('focus', refreshWiki);

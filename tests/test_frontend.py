@@ -17,7 +17,7 @@ class TestFrontend(unittest.TestCase):
         html = (APP / "index.html").read_text(encoding="utf-8")
         claude = (APP.parent / "CLAUDE.md").read_text(encoding="utf-8")
         listed = re.search(r"^area: (.+?)\s+#", claude, re.M).group(1).replace(" ", "").split("|")
-        areas = re.findall(r"(\w+):'", re.search(r"const AREAS = \{(.*?)\}", html).group(1))
+        areas = re.findall(r"(\w+):(?:L\()?'", re.search(r"const AREAS = \{(.*?)\}", html).group(1))
         self.assertEqual(sorted(areas), sorted(listed), "Las áreas de la app y de CLAUDE.md no coinciden")
 
     # En local se salta si no hay node; en CI (variable CI) es obligatorio
