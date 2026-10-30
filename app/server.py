@@ -36,6 +36,14 @@ def slugify(text):
     return text[:80] or "fuente"
 
 
+def fm_value(v):
+    """Valor de una línea de frontmatter: sin comillas si va entre comillas (y entonces un # es texto),
+    y si no, sin el comentario final (# precedido de espacio)."""
+    v = v.strip()
+    m = re.match(r'^(["\'])(.*)\1(\s+#.*)?$', v)
+    return m.group(2) if m else re.sub(r"\s#.*$", "", v).strip()
+
+
 def frontmatter(text):
     meta = {}
     m = re.match(r"^---\n(.*?)\n---\n?", text, re.S)
@@ -43,7 +51,7 @@ def frontmatter(text):
         for line in m.group(1).splitlines():
             if ":" in line:
                 k, v = line.split(":", 1)
-                meta[k.strip()] = re.sub(r"\s#.*$", "", v).strip()
+                meta[k.strip()] = fm_value(v)
     return meta
 
 

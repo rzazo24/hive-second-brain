@@ -497,10 +497,16 @@ function crumbs(parts) {
   $('#crumbs').innerHTML = parts.map((p, i) => i === parts.length - 1 ? `<span class="cur">${p}</span>` : `<span>${p}</span><span>/</span>`).join('');
 }
 
+// Igual que fm_value en server.py: sin comillas si las lleva (un # dentro es texto); si no, sin comentario final
+function fmValue(v) {
+  v = v.trim();
+  const m = v.match(/^(["'])(.*)\1(\s+#.*)?$/);
+  return m ? m[2] : v.replace(/\s#.*$/, '').trim();
+}
 function parseFM(md) {
   const meta = {};
   md = md.replace(/^---\n([\s\S]*?)\n---\n?/, (_, fm) => {
-    fm.split('\n').forEach(l => { const i = l.indexOf(':'); if (i > 0) meta[l.slice(0,i).trim()] = l.slice(i+1).replace(/\s#.*$/, '').trim(); });
+    fm.split('\n').forEach(l => { const i = l.indexOf(':'); if (i > 0) meta[l.slice(0,i).trim()] = fmValue(l.slice(i+1)); });
     return '';
   });
   return [meta, md];

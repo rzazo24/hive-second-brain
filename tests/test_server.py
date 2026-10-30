@@ -26,6 +26,8 @@ class TestHelpers(unittest.TestCase):
         self.assertEqual(meta["area"], "[salud, veterinaria]")  # el comentario se descarta
         self.assertEqual(server.frontmatter("sin frontmatter"), {})
         self.assertEqual(server.frontmatter("---\ntitulo: C# para .NET\n---\n")["titulo"], "C# para .NET")  # #3
+        self.assertEqual(server.frontmatter('---\ntitulo: "Mensajes privados en Nostr"\n---\n')["titulo"], "Mensajes privados en Nostr")
+        self.assertEqual(server.frontmatter("---\ntitulo: 'Uno # dos'  # nota\n---\n")["titulo"], "Uno # dos")
 
     def test_parse_area(self):
         self.assertEqual(server.parse_area("salud"), ["salud"])
