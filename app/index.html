@@ -225,7 +225,6 @@
   .urlrow .btn:disabled { opacity:.6; }
   @media (max-width:760px) { .urlbox .drop-ico { display:none; } .urlbox { padding:14px; } }
   .up { font-size:14px; padding:9px 12px; border-radius:10px; margin:6px 0 0; background:var(--hover); }
-  .hero .theme.lang { right:56px; font-weight:600; font-size:13px; }
   .corner-btn.lang-btn { font-size:12px; font-weight:600; }
   .linkbtn { background:none; border:0; padding:0 0 0 6px; font:inherit; color:var(--ink); text-decoration:underline; cursor:pointer; }
   .up.ok { background:rgba(46,160,67,.14); } .up.err { background:rgba(235,87,87,.15); } .up.note { background:none; color:var(--muted); padding:4px 2px; font-size:13px; }
@@ -270,7 +269,7 @@
     .page { padding:16px 16px 120px; }
     .page-icon { width:54px; height:60px; font-size:26px; margin-top:8px; }
     h1.title, input.big { font-size:28px; }
-    .hero { margin:0 -4px 8px; padding:14px 102px 14px 16px; }
+    .hero { margin:0 -4px 8px; padding:14px 60px 14px 16px; }
     .hero h1 { font-size:23px; }
     .md { font-size:16.5px; line-height:1.65; }
     .md h1 { font-size:23px; } .md h2 { font-size:20px; } .md h3 { font-size:18px; }
@@ -552,7 +551,6 @@ function showHome() {
   const recent = pages.filter(p => p.actualizado).sort((a,b) => b.actualizado.localeCompare(a.actualizado)).slice(0, 8);
   const hint = isMobile() ? L('Tu wiki personal, celda a celda.','Your personal wiki, cell by cell.') : L('Tu wiki personal. Pulsa <b>Ctrl K</b> para buscar.','Your personal wiki. Press <b>Ctrl K</b> to search.');
   $('#view').innerHTML = `<div class="hero honeycomb">
-      <button class="theme lang" title="${L('English','Español')}" onclick="toggleLang()">${L('EN','ES')}</button>
       <button class="theme" title="${L('Cambiar tema','Switch theme')}" onclick="toggleTheme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></button>
       <img src="/static/icon-192.png" alt="">
       <h1>Hive<b>2nd</b> Brain</h1><p>${hint}</p></div>
@@ -642,7 +640,8 @@ function helpEs(m) {
     <p>Sigue el tema de tu sistema. Para cambiarlo, usa el botón ${m ? 'de la cabecera del Inicio' : 'de arriba a la derecha'}; la elección se recuerda en este dispositivo.</p>
 
     <h2>Idioma</h2>
-    <p>La app se muestra en el idioma de tu navegador (español o inglés). Para cambiarlo, usa el botón <b>EN</b>/<b>ES</b> ${m ? 'de la cabecera del Inicio' : 'de arriba a la derecha'} o <a href="javascript:toggleLang()">cambia a inglés aquí</a>. El contenido del wiki sigue en español.</p>
+    <p>La app se muestra en el idioma de tu navegador (español o inglés). Puedes cambiarlo aquí${m ? '' : ' o con el botón <b>EN</b> de arriba a la derecha'}; se recuerda en este dispositivo. El contenido del wiki sigue en español.</p>
+    <p><button type="button" class="btn" onclick="toggleLang()">Switch to English</button></p>
 
     <h2>Acceso</h2>
     <p>La web solo es accesible desde dispositivos de tu red Tailscale, en <code>${esc(location.origin)}</code>. Si un equipo no la encuentra, comprueba que Tailscale está conectado y que usa su DNS.</p>`;
@@ -715,7 +714,8 @@ function helpEn(m) {
     <p>It follows your system theme. To change it, use the button ${m ? 'in the Home header' : 'at the top right'}; the choice is remembered on this device.</p>
 
     <h2>Language</h2>
-    <p>The app uses your browser's language (Spanish or English). To change it, use the <b>EN</b>/<b>ES</b> button ${m ? 'in the Home header' : 'at the top right'} or <a href="javascript:toggleLang()">switch to Spanish here</a>. The wiki content stays in Spanish.</p>
+    <p>The app uses your browser's language (Spanish or English). You can change it here${m ? '' : ' or with the <b>ES</b> button at the top right'}; the choice is remembered on this device. The wiki content stays in Spanish.</p>
+    <p><button type="button" class="btn" onclick="toggleLang()">Cambiar a español</button></p>
 
     <h2>Access</h2>
     <p>The site is only reachable from devices on your Tailscale network, at <code>${esc(location.origin)}</code>. If a device can't find it, check that Tailscale is connected and using its DNS.</p>`;
