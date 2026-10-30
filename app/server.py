@@ -39,7 +39,7 @@ def frontmatter(text):
         for line in m.group(1).splitlines():
             if ":" in line:
                 k, v = line.split(":", 1)
-                meta[k.strip()] = v.split("#")[0].strip()
+                meta[k.strip()] = re.sub(r"\s#.*$", "", v).strip()
     return meta
 
 
