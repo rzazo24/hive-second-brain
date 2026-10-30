@@ -68,6 +68,11 @@ class TestWiki(TempData, unittest.TestCase):
         (self.raw / "b.md").write_text("x")
         (self.raw / "_procesado.md").write_text("- a.md — 2026-10-28\n")
         self.assertEqual(server.pending_raw(), ["b.md"])
+        # Un nombre contenido en otro ya procesado sigue pendiente (#1)
+        (self.raw / "guia-de-gatos.md").write_text("x")
+        (self.raw / "gatos.md").write_text("x")
+        (self.raw / "_procesado.md").write_text("- a.md — 2026-10-28\n- guia-de-gatos.md — 2026-10-29\n")
+        self.assertEqual(server.pending_raw(), ["b.md", "gatos.md"])
 
 
 class TestCaptura(TempData, unittest.TestCase):

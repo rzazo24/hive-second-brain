@@ -20,7 +20,7 @@ for f in "$DATA"/raw/*.md; do
   [ -e "$f" ] || continue
   name="$(basename "$f")"
   [ "$name" = "_procesado.md" ] && continue
-  grep -qF -- "$name" "$DATA/raw/_procesado.md" 2>/dev/null || pending+=("$name")
+  grep -oE '[A-Za-z0-9_.-]+\.md' "$DATA/raw/_procesado.md" 2>/dev/null | grep -qxF -- "$name" || pending+=("$name")
 done
 
 if [ ${#pending[@]} -eq 0 ]; then

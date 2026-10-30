@@ -92,7 +92,8 @@ def search(q):
 
 
 def pending_raw():
-    done = (RAW / "_procesado.md").read_text(encoding="utf-8") if (RAW / "_procesado.md").exists() else ""
+    text = (RAW / "_procesado.md").read_text(encoding="utf-8") if (RAW / "_procesado.md").exists() else ""
+    done = set(re.findall(r"[\w.-]+\.md", text))  # nombres completos, no subcadenas
     return [p.name for p in sorted(RAW.glob("*.md"))
             if p.name != "_procesado.md" and p.name not in done]
 
