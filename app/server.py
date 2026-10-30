@@ -203,7 +203,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(404, {"error": "No encontrado"})
             return self.send(200, f.read_bytes(), MIME.get(f.suffix, "application/octet-stream"))
         if path == "/api/pages":
-            return self.send(200, {"pages": wiki_pages(), "pendientes": pending_raw()})
+            # no-store: que ningún navegador sirva un listado viejo
+            return self.send(200, {"pages": wiki_pages(), "pendientes": pending_raw()}, headers={"Cache-Control": "no-store"})
         if path.startswith("/api/page/"):
             p = find_page(unquote_plus(path[len("/api/page/"):]))
             if not p:
